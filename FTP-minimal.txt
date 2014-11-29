@@ -1,0 +1,29 @@
+Afin de rendre FTP exploitable sans multiplication de messages d'erreur inutiles, 
+une implémentation minimale à assurer par tous serveurs est définie ci-après :
+ 
+TYPE - ASCII Non-print -> pas a modifier
+
+MODE - Flux -> pas a modifier
+ 
+STRUCTURE - Fichier, Enregistrement -> pas a modifier
+ 
+COMMANDES - USER, QUIT, PORT,
+ TYPE, MODE, STRU, pour les valeurs par défaut
+ RETR, STOR,
+ NOOP.
+
+Les paramètres par défaut pour le transfert de données sont :
+ TYPE - ASCII Non-print
+ MODE - Stream
+ STRU - File
+
+
+USER nomUser \n -> (envoie le nom de l'utilisateur)
+QUIT \n -> (fermeture de la session)
+PORT port \n (spécifie le port à utilisé)
+TYPE code \n (modifie le type de représentation)
+MODE code \n  (modifie le mode de transfert)
+STRU code \n  (modifie la strcuture du fichier)
+RETR chemin \n (téléchargement d'un fichier)
+STOR chemin \n (envoie d'un fichier)
+NOOP \n (stimule le server)
