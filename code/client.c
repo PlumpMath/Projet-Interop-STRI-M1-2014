@@ -61,7 +61,7 @@ int InitialisationAvecService(char *machine, char *service) {
 	} while ( (res = res->ai_next) != NULL);
 
 	if (res == NULL) {
-     		perror("Initialisation, erreur de connect\n");
+     		perror("ERREUR : problème de connexion au serveur\n");
      		return 0;
 	}
 
