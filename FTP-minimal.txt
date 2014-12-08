@@ -27,3 +27,12 @@ STRU code \n  (modifie la strcuture du fichier)
 RETR chemin \n (téléchargement d'un fichier)
 STOR chemin \n (envoie d'un fichier)
 NOOP \n (stimule le server)
+
+
+
+Algorithme de connexion  :
+
+Client -> connexion () -> serveur
+serveur -> 220 - Saisir votre nom d'utilisateur -> client
+client -> USER $user -> serveur
+serveur -> 230 - Connexion réussie -> client

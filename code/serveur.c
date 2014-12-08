@@ -1,20 +1,3 @@
-/********************************************************
-* Projet de C - M1 STRI                                 *
-* TULEQUE Mikaël - WATRE Tony - PRIETO Florian          *
-*														*
-* Fichier : serveur.c									*
-*														*
-* Descriptif :											*
-*														*
-* Fichier contenant le corps de toutes les procédures et*
-* fonctions du serveur.									*
-* 														*
-* 														*
-*														*
-********************************************************/
-
-
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
@@ -54,6 +37,65 @@
 int socketEcoute;
 /* longueur de l'adresse */
 socklen_t longeurAdr;
+
+
+/* actions pour le client en paramètre, cette fonction doit être threadée pour la gestion du multi client */
+//void execClient(Client *client){
+//	
+//}
+
+/* Réalise la connexion du client en paramètre sur le serveur FTP 
+1 : connexion ok
+2 : connexion ko 
+0 : erreur serveur */
+int connecterClient(Client *client){
+	char *message = NULL; /* Message du client */
+	char *requete = NULL; /* Requete client */
+	char *utilisateur = NULL; /* Nom d'utilisateur du client */
+	/* On demande à l'utilisateur de saisir son nom d'utilisateur */
+	if(Emission("220 - Saisir utilisateur :\n", client) == 0){
+		printf("Erreur Emission : 220 - Saisir utilisateur\n");
+		return 0;
+	}
+	/* On vérifie que la variable message est bien vide et sinon on la vide */
+	if(message != NULL) {
+		message = NULL;
+	}
+	/* On récupère la réponse du client */
+	message = Reception(client);
+	/* On teste que la réponse ne soit pas nulle */
+	if(message != NULL){
+		/* On décompose le message du client pour extraire les informations */
+		requete = strtok(message, " \n");
+		utilisateur = strtok(NULL," \n");
+		/* On teste que ces deux variables sont non-nulles et que la requete est bien USER */
+		if(requete != NULL && utilisateur != NULL && strcmp("USER",requete) == 0){
+			/* Si tout est ok on informe l'utilisateur de la connexion */
+			if(Emission("230 - Connexion OK\n",client) == 0){
+				printf("Erreur Emission : 230 - Connexion OK pour l'utilisateur %s\n",utilisateur);
+				return 0;
+			}
+			/* On retourne 1 */
+			printf("utilisateur %s connexion OK\n", utilisateur);
+			return 1;
+		}else{
+			/* Si tout est pas ok on informe l'utilisateur que la connexion est refusée */
+			if(Emission("530 - Connexion KO : requete ou utilisateur incorrect\n",client) == 0){
+				printf("Erreur Emission : 530 - Connexion KO\n");
+				return 0;
+			}
+			/* On retourne 1 */
+			printf("utilisateur %s connexion KO\n", utilisateur);
+			return 2;
+		}
+	}else{
+		/* On quitte avec une erreur */
+		printf("ERREUR dans connecterClient() : message = null\n");
+		return 0;
+	}
+}
+
+
 
 /* Initialisation.
  * Creation du serveur en prŽcisant le service ou numŽro de port.

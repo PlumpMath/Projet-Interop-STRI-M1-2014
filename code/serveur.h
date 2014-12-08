@@ -1,20 +1,3 @@
-/********************************************************
-* Projet de C - M1 STRI                                 *
-* TULEQUE Mikaël - WATRE Tony - PRIETO Florian          *
-*														*
-* Fichier : serveur.h									*
-*														*
-* Descriptif :											*
-*														*
-* Fichier contenant le prototype des fontions et des 	*
-* procédures du serveur.								*
-* 														*
-* 														*
-*														*
-********************************************************/
-
-
-
 #ifndef __SERVEUR_H__
 #define __SERVEUR_H__
 
@@ -28,6 +11,12 @@ typedef struct {
 	int debutTampon;
 	int finTampon;
 } Client;
+
+
+/* Réalise la connexion du client en paramètre sur le serveur FTP 
+1 : connexion ok
+0 : connexion ko */
+int connecterClient(Client *client);
 
 /* Initialisation.
  * Creation du serveur en prŽcisant le service ou numŽro de port.
