@@ -120,3 +120,53 @@ void Terminaison() {
 void listeFichiers(){
 
 }
+
+/* Fonction permettant l'envoi à une machine distante du fichier dont le chemin est passé en paramètre */
+int EnvoiFichier (char * nomFichier)
+{
+	FILE * fichier = NULL; /* Fichier que l'on veut envoyer */
+	char * contenuFichier; /* Contenu fu fichier en paramètre*/
+
+	/* On teste que le chemin pour le fichier n'est pas nul */
+	if (nomFichier == NULL || strlen(nomFichier) < 1)
+	{ 
+		/* Si le chemin du fichier est null ou vide alors on envoi un message d'erreur */
+		printf("ERREUR : Nom du fichier en paramètre null ou vide\n");
+		// trouver le code de merde qui correspond
+		//Emission("Manque le nom de fichier \n");
+		return 0;
+	}
+	else
+	{
+		/* voir le probleme du binaire */
+		//Ouverture du fichier
+		fichier = fopen(nomFichier, "rb");
+		if(fichier == NULL)
+		{
+			printf("ERREUR ; ouverture du fichier %s impossible\n",nomFichier);
+			//Emission("Le fichier n'existe pas \n");
+			return 0;
+		}
+		else
+		{
+			/* On stocke le contenu du fichier dans la variable */
+   			if(fread(contenuFichier,1 * sizeof(fichier),1,fichier)<1){
+   				/* Problème lecture du fichier */
+        		printf("ERREUR : lecture du fichier\n");
+        		return 0;
+    		}else{
+    			/* on envoi le fichier serveur */
+    			if(Emission(contenuFichier) == 1){
+    				/* Envoi du fichier OK */
+    				/* On attend la réponse du serveur */
+    			}else{
+    				/* Erreur d'émission */
+    				printf("ERREUR : problème d'émission\n");
+    				return 0;
+    			}
+    		}
+		}
+		fclose(fichier);
+	}
+	return 1;
+}

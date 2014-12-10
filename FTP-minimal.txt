@@ -36,3 +36,4 @@ Client -> connexion () -> serveur
 serveur -> 220 - Saisir votre nom d'utilisateur -> client
 client -> USER $user -> serveur
 serveur -> 230 - Connexion réussie -> client
+serveur -> 530 - Connexion échouée -> client

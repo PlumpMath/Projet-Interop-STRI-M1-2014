@@ -39,4 +39,7 @@ void Terminaison();
 /* Récupère la liste des fichiers dans le répertoire courrant du serveur */
 void listeFichiers();
 
+/* Fonction permettant l'envoi à une machine distante du fichier dont le chemin est passé en paramètre */
+int EnvoiFichier (char * nomFichier);
+
 #endif
