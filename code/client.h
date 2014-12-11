@@ -39,7 +39,14 @@ void Terminaison();
 /* Récupère la liste des fichiers dans le répertoire courrant du serveur */
 void listeFichiers();
 
-/* Fonction permettant l'envoi à une machine distante du fichier dont le chemin est passé en paramètre */
-int EnvoiFichier (char * nomFichier);
+/* 
+Fonction permettant l'envoi à une machine distante du fichier dont le chemin est passé en paramètre.
+ */
+void EnvoiFichier (char * nomFichier);
+
+/* 
+Permet de créer un fichier de nom passé en paramètre à partir du contenu passé en paramètre.
+*/
+void ReceptionFichier(char * nomFichier);
 
 #endif

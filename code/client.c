@@ -121,52 +121,156 @@ void listeFichiers(){
 
 }
 
-/* Fonction permettant l'envoi à une machine distante du fichier dont le chemin est passé en paramètre */
-int EnvoiFichier (char * nomFichier)
+/* 
+Fonction permettant l'envoi à une machine distante du fichier dont le chemin est passé en paramètre.
+ */
+void EnvoiFichier (char * nomFichier)
 {
+	/*
+	envoyer(demande)
+	lire(reponse)
+	si reponse == ok alors
+		envoyer(nom)
+		lire(reponse)
+		si reponse == ok alors
+			envoyer(fichier)
+			afficher(reponse)
+		sinon
+			afficher(erreur)
+		fin
+	sinon
+		afficher(ereur)
+	fin
+	*/
+
 	FILE * fichier = NULL; /* Fichier que l'on veut envoyer */
 	char * contenuFichier; /* Contenu fu fichier en paramètre*/
+	char * reponseServeur; /* reponse du serveur après une émission */
 
 	/* On teste que le chemin pour le fichier n'est pas nul */
 	if (nomFichier == NULL || strlen(nomFichier) < 1)
 	{ 
 		/* Si le chemin du fichier est null ou vide alors on envoi un message d'erreur */
 		printf("ERREUR : Nom du fichier en paramètre null ou vide\n");
-		// trouver le code de merde qui correspond
-		//Emission("Manque le nom de fichier \n");
-		return 0;
 	}
 	else
 	{
-		/* voir le probleme du binaire */
 		//Ouverture du fichier
 		fichier = fopen(nomFichier, "rb");
 		if(fichier == NULL)
 		{
+			/* probleme d'ouverture du fichier on sort en erreur */
 			printf("ERREUR ; ouverture du fichier %s impossible\n",nomFichier);
-			//Emission("Le fichier n'existe pas \n");
-			return 0;
 		}
 		else
 		{
 			/* On stocke le contenu du fichier dans la variable */
    			if(fread(contenuFichier,1 * sizeof(fichier),1,fichier)<1){
    				/* Problème lecture du fichier */
-        		printf("ERREUR : lecture du fichier\n");
-        		return 0;
+        		printf("ERREUR : lecture du fichier KO\n");
+        		fclose(fichier);
     		}else{
-    			/* on envoi le fichier serveur */
-    			if(Emission(contenuFichier) == 1){
-    				/* Envoi du fichier OK */
-    				/* On attend la réponse du serveur */
+    			/* On envoi le nom du fichier */
+    			if(Emission(nomFichier) != 1){
+    				/* Si erreur emission on sort en erreur */
+    				printf("ERREUR : emission du nom du fichier KO\n");
+    				fclose(fichier);
     			}else{
-    				/* Erreur d'émission */
-    				printf("ERREUR : problème d'émission\n");
-    				return 0;
+    				/* on lit la réponse du serveur */
+    				reponseServeur = Reception();
+    				/* On regarde si la réponse du serveur commence par "OK" */
+    				char * testReponse = NULL; /* variable permettant de tester la réponse du serveur */
+    				/* On ajoute les deux premiers caractères de la réponse pour voir si elle commence par OK */
+    				strcat(testReponse,reponseServeur[0]);
+    				strcat(testReponse,reponseServeur[1]);
+    				if(strcmp("OK",testReponse == 0)){
+    					/* On a reçu OK on peut envoyer le contenu */
+    					/* on envoi le fichier serveur */
+		    			if(Emission(contenuFichier) == 1){
+		    				/* Si c'est bon on ferme le fichier */
+		    				fclose(fichier);
+		    				/* On attend la réponse du serveur et on l'affiche */
+		    				printf(Reception());
+		    			}else{
+		    				/* Erreur d'émission */
+		    				printf("ERREUR : problème d'émission\n");
+		    				fclose(fichier);
+		    			}
+    				}else{
+    					/* Sinon on affiche le message d'erreur du serveur */
+    					printf(reponseServeur);
+    					fclose(fichier);
+    				}
     			}
+    			
     		}
 		}
-		fclose(fichier);
 	}
-	return 1;
+	
+}
+
+/* 
+Permet de créer un fichier de nom passé en paramètre à partir du contenu passé en paramètre.
+*/
+void ReceptionFichier(char * nomFichier)
+{
+	/*
+	envoyer(demande)
+	lire(reponse)
+	si reponse = ok alors
+		envoyer(nomFichier)
+		lire(reponse)
+		si reponse = ok alors
+			lire(contenu)
+			creerFichier(contenu)
+		sinon
+			afficher(reponse)
+		fin
+	sinon
+		afficher(reponse)
+	fin
+	*/
+
+	FILE * fichier = NULL; /* Fichier dans lequel on va écrire */
+	char * contenuFichier; /* Contenu du fichier reçu du serveur */
+	char * reponseServeur; /* reponse du serveur */
+
+	/* On teste que le chemin pour le fichier n'est pas nul */
+	if (nomFichier == NULL || strlen(nomFichier) < 1)
+	{
+		/* Si nomFichier null ou vide on sort en erreur */
+		printf("ERREUR : Nom du fichier NULL ou vide \n");
+	}else{
+		/* Ouverture du fichier en mode écriture (écrase si déjà existant) */
+	    fichier = fopen(nomFichier,"wb");
+	    if(fichier == NULL)
+	    {
+	    	/* Si problème d'ouverture du fichier on sort en erreur */
+	        printf("ERREUR : ouverture du fichier %s KO\n",nomFichier);
+	    }else{
+	    	/* on envoi le nom du fichier que on veut télécharger au serveur */
+	    	if(Emission(nomFichier) != 1){
+    			/* Si erreur emission on sort en erreur */
+    			printf("ERREUR : emission du nom du fichier KO\n");
+    			fclose(fichier);
+    		}else{
+    			/* On attend la réponse du serveur */
+    			reponseServeur = Reception();
+    			/* On regarde si la réponse du serveur commence par "OK" */
+    			if(strcmp("OK",reponseServeur[0]+reponseServeur[1]) == 0){
+    				contenuFichier = Reception(); /* on récupère le contenu du fichier depuis le serveur */
+    				/* on ajoute le contenu dans le fichier */
+				    if(fwrite(contenuFichier,1*sizeof(contenuFichier),1,fichier) < 1)
+				    {
+				    	/* Erreur création du fichier */
+				        printf("ERREUR : ecriture fichier KO\n");
+				    }else{
+				    	printf("Telechargement du fichier %s --> OK\n",nomFichier); /* on informe du succes du téléchargement du fichier */
+				    	/* on ferme le fichier */
+				    	fclose(fichier);
+				    }
+    			}
+    		}
+	    }	
+	}
 }
