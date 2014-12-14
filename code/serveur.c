@@ -38,61 +38,58 @@ int socketEcoute;
 /* longueur de l'adresse */
 socklen_t longeurAdr;
 
-
-/* actions pour le client en paramètre, cette fonction doit être threadée pour la gestion du multi client */
-//void execClient(Client *client){
-//	
-//}
-
-/* Réalise la connexion du client en paramètre sur le serveur FTP 
-1 : connexion ok
-2 : connexion ko 
-0 : erreur serveur */
-int connecterClient(Client *client){
+/* Réalise la connexion du client en paramètre sur le serveur FTP */
+void connecterClient(Client *client){
 	char *message = NULL; /* Message du client */
+	char * messageSave;
 	char *requete = NULL; /* Requete client */
 	char *utilisateur = NULL; /* Nom d'utilisateur du client */
-	/* On demande à l'utilisateur de saisir son nom d'utilisateur */
-	if(Emission("220 - Saisir utilisateur :\n", client) == 0){
-		printf("Erreur Emission : 220 - Saisir utilisateur\n");
-		return 0;
-	}
-	/* On vérifie que la variable message est bien vide et sinon on la vide */
-	if(message != NULL) {
-		message = NULL;
-	}
-	/* On récupère la réponse du client */
+
+	printf("Demande de connexion client\n");
+
+	/* On demande le nom d'utilisateur au client */
+	printf("On demande le nom d'utilisateur\n");
+	Emission("220 - Saisir utilisateur : \n", client);
+	/* On récupère la réponse du client qui doit être sous forme USER utilisateur */
 	message = Reception(client);
-	/* On teste que la réponse ne soit pas nulle */
-	if(message != NULL){
-		/* On décompose le message du client pour extraire les informations */
-		requete = strtok(message, " \n");
-		utilisateur = strtok(NULL," \n");
-		/* On teste que ces deux variables sont non-nulles et que la requete est bien USER */
-		if(requete != NULL && utilisateur != NULL && strcmp("USER",requete) == 0){
-			/* Si tout est ok on informe l'utilisateur de la connexion */
-			if(Emission("230 - Connexion OK\n",client) == 0){
-				printf("Erreur Emission : 230 - Connexion OK pour l'utilisateur %s\n",utilisateur);
-				return 0;
-			}
-			/* On retourne 1 */
-			printf("utilisateur %s connexion OK\n", utilisateur);
-			return 1;
-		}else{
-			/* Si tout est pas ok on informe l'utilisateur que la connexion est refusée */
-			if(Emission("530 - Connexion KO : requete ou utilisateur incorrect\n",client) == 0){
-				printf("Erreur Emission : 530 - Connexion KO\n");
-				return 0;
-			}
-			/* On retourne 1 */
-			printf("utilisateur %s connexion KO\n", utilisateur);
-			return 2;
-		}
+	/* On alloue de la mémoire a la variable de sauvegarde pour pouvoir sauvegarder le message */
+	messageSave = (char*) malloc(60);
+	/* On sauvegarde le message reçu */
+	strcpy(messageSave,message);
+	/* On analyse le message du client pour voir si il est conforme */
+	/* On découpe le message du client pour extraire les informations */
+	requete = strtok(message, " \n");
+	utilisateur = strtok(NULL," \n");
+	/* On teste que la requete est bien USER */
+	if(strcmp(requete,"USER") != 0){
+		/* requete incorrecte */
+		printf("Requête incorrecte : mauvaise commande\n");
+		Emission("500 - Requête incorrecte\n",client);
 	}else{
-		/* On quitte avec une erreur */
-		printf("ERREUR dans connecterClient() : message = null\n");
-		return 0;
+		/* On teste que l'utilisateur n'est pas NULL */
+		if(utilisateur == NULL || strcmp(utilisateur,"") == 0){
+			printf("Utilisateur NULL ou vide\n");
+			Emission("501 - Utilisateur NULL ou vide\n",client);
+		}else{
+			/* On teste maintenant que la requête n'est pas trop longue */
+			/* On créer une requete de test qui est de la bonne longueur */
+			char *testLongueurMessage;
+			/* On lui alloue de la mémoire */
+			testLongueurMessage = (char*) malloc(60);
+			sprintf(testLongueurMessage,"USER %s\n",utilisateur);
+			/* On teste maintenant si la requete que l'on a reçu du client fait la bonne longueur */
+			if(strlen(testLongueurMessage) != strlen(messageSave)){
+				/* requete incorrecte */
+				printf("Requête incorrecte : problème de longueur\n");
+				Emission("500 - Requête incorrecte\n",client);
+			}else{
+				/* On autorise la connexion du client sur le serveur */
+				printf("Connexion autorisee pour l'utilisateur %s\n",utilisateur);
+				Emission("230 : Connexion établie\n",client);
+			}
+		}
 	}
+	
 }
 
 

@@ -49,4 +49,10 @@ Permet de créer un fichier de nom passé en paramètre à partir du contenu passé e
 */
 void ReceptionFichier(char * nomFichier);
 
+/* 
+Connexion au serveur FTP.
+retourne 1 si la connexion est OK et 0 sinon
+*/
+int connecterUtilisateur();
+
 #endif

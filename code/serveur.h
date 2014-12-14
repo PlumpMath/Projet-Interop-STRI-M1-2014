@@ -13,10 +13,8 @@ typedef struct {
 } Client;
 
 
-/* Réalise la connexion du client en paramètre sur le serveur FTP 
-1 : connexion ok
-0 : connexion ko */
-int connecterClient(Client *client);
+/* Réalise la connexion du client en paramètre sur le serveur FTP */
+void connecterClient(Client *client);
 
 /* Initialisation.
  * Creation du serveur en prcisant le service ou numro de port.

@@ -42,11 +42,19 @@ serveur -> 530 - Connexion échouée -> client
 Message retour pendant un transfert:
 
 RETR (téléchargement du serveur vers le user)
-125 : Canal de données déjà ouvert; début de transfert, 150 : Statut de fichier vérifié; ouverture de canal de données en cours.
-226 : Fermeture du canal de données. Service terminé, 250 : Service fichier terminé.
-425 : Erreur d'ouverture du canal de données, 426 : Connexion fermée, transfert interrompu, 451 : Service interrompu. Erreur locale de traitement.
-450 : Service fichier non traité. Fichier non disponible, 550 : Service fichier non traité. Fichier non accessible
-500 : Erreur de syntaxe, commande non reconnue. Inclut le cas d'une ligne de commande trop longue, 501 : Erreur de syntaxe dans le paramètres ou arguments, 421 : Service non disponible, canal de contrôle fermé. Répondu à toute commande lorsque la fermeture imminente du service est prévue, 530 : Session non ouverte.
+125 : Canal de données déjà ouvert; début de transfert, 
+150 : Statut de fichier vérifié; ouverture de canal de données en cours.
+226 : Fermeture du canal de données. Service terminé, 
+250 : Service fichier terminé.
+425 : Erreur d'ouverture du canal de données, 
+426 : Connexion fermée, transfert interrompu, 
+451 : Service interrompu. Erreur locale de traitement.
+450 : Service fichier non traité. Fichier non disponible, 
+550 : Service fichier non traité. Fichier non accessible
+500 : Erreur de syntaxe, commande non reconnue. Inclut le cas d'une ligne de commande trop longue, 
+501 : Erreur de syntaxe dans le paramètres ou arguments, 
+421 : Service non disponible, canal de contrôle fermé. Répondu à toute commande lorsque la fermeture imminente du service est prévue, 
+530 : Session non ouverte.
 
 STOR (acceptation du fichier / enregistrement, sur le serveur)
 125, 150

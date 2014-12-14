@@ -274,3 +274,50 @@ void ReceptionFichier(char * nomFichier)
 	    }	
 	}
 }
+
+
+/* 
+Connexion au serveur FTP.
+retourne 1 si la connexion est OK et 0 sinon
+*/
+int connecterUtilisateur(){
+
+	char *message = NULL; /* Variable qui va contenir les messages du serveur */
+	char utilisateur[50]; /* Nom d'utilisateur avec lequel on veut se connecter */
+	int erreur = 0; /* variable qui permet de tester la présence d'une erreur */
+	char * requete; /* Requete que l'on va envoyer au serveur */
+
+	/* On alloue de la mémoire pour la variable requete */
+	requete = (char*) malloc(60);
+
+	/* On récupère le message du serveur */
+	message = Reception();
+
+	/* On affiche ce message */
+	printf("%s",message);
+
+	/* On va lire le nom d'utilisateur au clavier */
+	fgets(utilisateur,50,stdin);
+
+	/* On prepare la requete pour le serveur */
+	strcat(requete,"USER ");
+	strcat(requete,utilisateur);
+
+	/* On envoi la requete au serveur */
+	Emission(requete);
+
+	/* On récupère la reponse du serveur */
+	message = NULL;
+	message = Reception();
+
+	/* On affiche cette réponse */
+	printf("%s",message);
+
+	/* On analyse la réponse du serveur pour voir la connxion est OK , il faut un message 230 */
+	if(strstr(message,"230") != NULL){
+		/* La réponse du serveur est bien de type 230 */
+		return 1;
+	}else{
+		return 0;
+	}
+}

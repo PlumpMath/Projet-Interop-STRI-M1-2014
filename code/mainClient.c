@@ -5,8 +5,11 @@
 
 int main(int argc, char *argv[]) {
 	char *message; /* Variable qui va contenir la requete du client */
+	int etatConnexion; /* 1 : connecter / 0 : non connecté */
 	/* On alloue de la mémoire pour message */
 	message = (char*) malloc(105);
+
+	etatConnexion = 0;
 
 	/* On initialise le client */
 	if(InitialisationAvecService(argv[1],argv[2]) == 0){
@@ -14,22 +17,15 @@ int main(int argc, char *argv[]) {
 		return -1;
 	}
 
-	/* On demande de saisir le message pour le serveur */
-	printf(Reception());
+	/* On se connecte directement sur le serveur */
+	etatConnexion = connecterUtilisateur();
 
-	/* on récupère la saisie */
-	scanf("%[^\n]", message);
-
-	/* On affiche le message que l'on va envoyer */
-	printf("Vous avez saisi : %s\n",message);
-
-	/* On envoi le message */
-	if(Emission(message) == 0){
-				/* Erreur d'émission*/
-				return -2;
+	/* On affiche un message selon que l'on soit connecté ou non */
+	if(etatConnexion == 1){
+		printf("connecté\n");
+	}else{
+		printf("non connecté\n");
 	}
-
-	printf(Reception());
 
 	return 0;
 

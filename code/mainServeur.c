@@ -18,9 +18,7 @@ int main(int argc, char *argv[]) {
 	while(1) {
 		/* On récupère le client qui s'est connecté au serveur */
 		client = AttenteClient();
-		if(connecterClient(client) == 0){
-			Emission("530 - Connexion KO : problème sur le serveur\n",client);
-		}
+		connecterClient(client);
 	}
 
 	/* On libère le socket */
