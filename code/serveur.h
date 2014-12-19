@@ -13,9 +13,6 @@ typedef struct {
 } Client;
 
 
-/* Réalise la connexion du client en paramètre sur le serveur FTP */
-void connecterClient(Client *client);
-
 /* Initialisation.
  * Creation du serveur en prcisant le service ou numro de port.
  * renvoie 1 si a c'est bien pass 0 sinon
@@ -53,5 +50,12 @@ char * putMajuscule(char *ch);
 
 /* Liste le répertoire passé en paramètre */
 char * listeDir(char *dir);
+
+/* Réalise la connexion du client en paramètre sur le serveur FTP 
+retourne 1 si client connecte et 0 sinon*/
+int connecterClient(Client *client);
+
+/* Permet au client d'envoyer un fichier sur le serveur, si le fichier est déjà présent sur le serveur on écrase */
+void recevoirFichier(Client *client, char *requete);
 
 #endif

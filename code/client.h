@@ -40,16 +40,6 @@ void Terminaison();
 void listeFichiers();
 
 /* 
-Fonction permettant l'envoi à une machine distante du fichier dont le chemin est passé en paramètre.
- */
-void EnvoiFichier (char * nomFichier);
-
-/* 
-Permet de créer un fichier de nom passé en paramètre à partir du contenu passé en paramètre.
-*/
-void ReceptionFichier(char * nomFichier);
-
-/* 
 Connexion au serveur FTP.
 retourne 1 si la connexion est OK et 0 sinon
 */

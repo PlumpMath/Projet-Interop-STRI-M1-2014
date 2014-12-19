@@ -38,60 +38,6 @@ int socketEcoute;
 /* longueur de l'adresse */
 socklen_t longeurAdr;
 
-/* Réalise la connexion du client en paramètre sur le serveur FTP */
-void connecterClient(Client *client){
-	char *message = NULL; /* Message du client */
-	char * messageSave;
-	char *requete = NULL; /* Requete client */
-	char *utilisateur = NULL; /* Nom d'utilisateur du client */
-
-	printf("Demande de connexion client\n");
-
-	/* On demande le nom d'utilisateur au client */
-	printf("On demande le nom d'utilisateur\n");
-	Emission("220 - Saisir utilisateur : \n", client);
-	/* On récupère la réponse du client qui doit être sous forme USER utilisateur */
-	message = Reception(client);
-	/* On alloue de la mémoire a la variable de sauvegarde pour pouvoir sauvegarder le message */
-	messageSave = (char*) malloc(60);
-	/* On sauvegarde le message reçu */
-	strcpy(messageSave,message);
-	/* On analyse le message du client pour voir si il est conforme */
-	/* On découpe le message du client pour extraire les informations */
-	requete = strtok(message, " \n");
-	utilisateur = strtok(NULL," \n");
-	/* On teste que la requete est bien USER */
-	if(strcmp(requete,"USER") != 0){
-		/* requete incorrecte */
-		printf("Requête incorrecte : mauvaise commande\n");
-		Emission("500 - Requête incorrecte\n",client);
-	}else{
-		/* On teste que l'utilisateur n'est pas NULL */
-		if(utilisateur == NULL || strcmp(utilisateur,"") == 0){
-			printf("Utilisateur NULL ou vide\n");
-			Emission("501 - Utilisateur NULL ou vide\n",client);
-		}else{
-			/* On teste maintenant que la requête n'est pas trop longue */
-			/* On créer une requete de test qui est de la bonne longueur */
-			char *testLongueurMessage;
-			/* On lui alloue de la mémoire */
-			testLongueurMessage = (char*) malloc(60);
-			sprintf(testLongueurMessage,"USER %s\n",utilisateur);
-			/* On teste maintenant si la requete que l'on a reçu du client fait la bonne longueur */
-			if(strlen(testLongueurMessage) != strlen(messageSave)){
-				/* requete incorrecte */
-				printf("Requête incorrecte : problème de longueur\n");
-				Emission("500 - Requête incorrecte\n",client);
-			}else{
-				/* On autorise la connexion du client sur le serveur */
-				printf("Connexion autorisee pour l'utilisateur %s\n",utilisateur);
-				Emission("230 : Connexion établie\n",client);
-			}
-		}
-	}
-	
-}
-
 
 
 /* Initialisation.
@@ -305,4 +251,139 @@ char * listeDir(char *repCourrant){
 
 	/* On renvoi la liste des fichiers */
 	return listeFic;
+}
+
+/* Réalise la connexion du client en paramètre sur le serveur FTP 
+retourne 1 si client connecte et 0 sinon*/
+int connecterClient(Client *client){
+	char *message = NULL; /* Message du client */
+	char * messageSave;
+	char *requete = NULL; /* Requete client */
+	char *utilisateur = NULL; /* Nom d'utilisateur du client */
+
+	printf("Demande de connexion client\n");
+
+	/* On demande le nom d'utilisateur au client */
+	printf("On demande le nom d'utilisateur\n");
+	Emission("220 - Saisir utilisateur (max 50 caractères) : \n", client);
+	/* On récupère la réponse du client qui doit être sous forme USER utilisateur */
+	message = Reception(client);
+	/* On alloue de la mémoire a la variable de sauvegarde pour pouvoir sauvegarder le message */
+	messageSave = (char*) malloc(60);
+	/* On sauvegarde le message reçu */
+	strcpy(messageSave,message);
+	/* On analyse le message du client pour voir si il est conforme */
+	/* On découpe le message du client pour extraire les informations */
+	requete = strtok(message, " \n");
+	utilisateur = strtok(NULL," \n");
+	/* On teste que la requete est bien USER */
+	if(strcmp(requete,"USER") != 0){
+		/* requete incorrecte */
+		printf("Requête incorrecte : mauvaise commande\n");
+		Emission("500 - Requête incorrecte\n",client);
+		return 0;
+	}else{
+		/* On teste que l'utilisateur n'est pas NULL */
+		if(utilisateur == NULL || strcmp(utilisateur,"") == 0){
+			printf("Utilisateur NULL ou vide\n");
+			Emission("501 - Utilisateur NULL ou vide\n",client);
+			return 0;
+		}else{
+			/* On teste maintenant que la requête n'est pas trop longue */
+			/* On créer une requete de test qui est de la bonne longueur */
+			char *testLongueurMessage;
+			/* On lui alloue de la mémoire */
+			testLongueurMessage = (char*) malloc(60);
+			sprintf(testLongueurMessage,"USER %s\n",utilisateur);
+			/* On teste maintenant si la requete que l'on a reçu du client fait la bonne longueur */
+			if(strlen(testLongueurMessage) != strlen(messageSave)){
+				/* requete incorrecte */
+				printf("Requête incorrecte : problème de longueur\n");
+				Emission("500 - Requête incorrecte\n",client);
+				return 0;
+			}else{
+				/* On autorise la connexion du client sur le serveur */
+				printf("Connexion autorisee pour l'utilisateur %s\n",utilisateur);
+				Emission("230 : Connexion établie\n",client);
+				return 1;
+			}
+		}
+	}
+	
+}
+
+/* Permet au client d'envoyer un fichier sur le serveur, si le fichier est déjà présent sur le serveur on écrase */
+void recevoirFichier(Client *client, char *requete){
+	char *requeteSave; /* sauvegarde de la requete passée en paramètre */
+	char *nomFichier; /* nom du fichier envoyé par l'utilisateur */
+	char *commande; /* commande de l'utilisateur */
+
+	/* On alloue de la mémoire à la sauvegarde de la requete */
+	requeteSave = (char*) malloc(100);
+
+	/* On sauvegarde la requete */
+	strcpy(requeteSave,requete);
+
+	/* On décompose la requete client pour extraire le nom du fichier et la commande */
+	commande = strtok(requete, " \n");
+	nomFichier = strtok(NULL, " \n");
+
+	/* On vérifie que la commande est bien STOR */
+	if(strcmp(commande,"STOR") != 0){
+		/* On envoi l'erreur au client */
+		printf("Requete incorrecte : mauvaise commande\n");
+		Emission("500 - Requête incorrecte\n",client);
+	}else{
+		/* On teste que le chemin du fichier pas vide */
+		if(strcmp(nomFichier,NULL) == 0 || strcmp(nomFichier,"") == 0){
+			/* Erreur pas de chemin pour le fichier */
+			printf("ERREUR : Le chemin du fichier est vide\n");
+			Emission("501 - Chemin du fichier NULL ou vide\n",client);
+		}else{
+			/* On teste maintenant la longueur de la requete */
+			/* On va donc comparer la requete sauvegardée à une requete que l'on monte pour le test */
+			requete = NULL;
+			sprintf(requete,"STOR %s\n",nomFichier);
+			if(strlen(requeteSave) != strlen(requete)){
+				/* requete incorrecte */
+				printf("Requête incorrecte : problème de longueur\n");
+				Emission("500 - Requête incorrecte\n",client);
+			}else{
+				/* On demande maintenant le contenu du fichier au client */
+				Emission("150 - Transfert autorisé\n",client);
+				char *contenuFichier = NULL;
+				contenuFichier = Reception(client);
+
+				/* On teste que le contenu a bien été reçu */
+				if(strcmp(contenuFichier,NULL) == 0){
+					printf("ERREUR : problème réception contenu fichier\n");
+					Emission("451 - Erreur avec l'envoi du fichier\n",client);
+				}else{
+					/* On va maintenant créer le fichier */
+					FILE * fichier = NULL; /* Fichier dans lequel on va écrire */
+					fichier = fopen(nomFichier,"wb");
+					/* On teste la création/ouverture du fichier */
+					if(fichier == NULL){
+						/* Probleme création fichier */
+						printf("ERREUR : création fichier KO\n");
+						Emission("451 - Erreur avec la création du fichier sur le serveur\n",client);
+					}else{
+						/* On va maintenant écrire le contenu dans la fichier */
+						if(fwrite(contenuFichier,1*sizeof(contenuFichier),1,fichier) < 1){
+				    		/* Erreur écriture du fichier */
+				        	printf("ERREUR : ecriture fichier KO\n");
+				        	Emission("451 - Erreur avec l'écriture dans le fichier sur le serveur\n",client);
+				    	}else{
+				    		/* Si tout c'est bien on informe l'utilisateur */
+				    		printf("Transfert du fichier OK\n");
+				    		Emission("226 - Transfert du fichier terminé\n",client);
+				    		/* on ferme le fichier */
+				    		fclose(fichier);
+				    	}
+					}
+				}
+			}
+		}
+	}
+
 }
