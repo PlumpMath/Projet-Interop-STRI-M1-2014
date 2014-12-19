@@ -45,4 +45,7 @@ retourne 1 si la connexion est OK et 0 sinon
 */
 int connecterUtilisateur();
 
+/* Envoi un fichier présent dans le dossier courrant sur le serveur */
+void envoyerFichier(char *nomFichier);
+
 #endif

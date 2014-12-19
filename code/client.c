@@ -167,3 +167,50 @@ int connecterUtilisateur(){
 		return 0;
 	}
 }
+
+/* Envoi un fichier présent dans le dossier courrant sur le serveur */
+void envoyerFichier(char *nomFichier){
+	FILE * fichier = NULL; /* Fichier que l'on veut envoyer */
+	char *contenuFichier; /* Contenu du fichier que l'on veut envoyer */
+	char *reponseServeur; /* Réponse du serveur */
+	char requete[100]; /* requete qu'on envoi au serveur */
+
+	/* Ouverture du fichier en mode lecture */
+	fichier = fopen(nomFichier,"rb");
+	/* On teste l'ouverture du fichier */
+	if(fichier == NULL){
+		/* problème ouverture */
+		printf("ERREUR : ouverture du fichier échouée\n");
+	}else{
+		/* on va maintenant lire le contenu du fichier */
+		if(fread(contenuFichier,sizeof(FILE),1,fichier)<1){
+			/* Erreur lecture fichier */
+			printf("ERREUR : lecture du fichier échouée\n");
+		}else{
+			/* On teste que contenu fichier est non null */
+			if(strcmp(contenuFichier,NULL) == 0){
+				/* Contenu fichier null */
+				printf("ERREUR : contenu du fichier null\n");
+			}else{
+				/* on prépare la requete pour le serveur */
+				sprintf(requete,"STOR %s\n",nomFichier);
+				/* On envoi la requete au serveur */
+				Emission(requete);
+				/* On affiche la réponse du serveur */
+				reponseServeur = Reception();
+				printf("%s",reponseServeur);
+				/* Si la réponse est 150 - * on envoi le contenu */
+				if(strstr(reponseServeur,"150") != NULL){
+					/* Le serveur accepte la demande, on envoi le contenu */
+					Emission(contenuFichier);
+					/* On récupère la reponse du serveur */
+					reponseServeur = NULL;
+					reponseServeur = Reception();
+					printf("%s",reponseServeur);
+				}
+			}
+		}
+		/* On ferme le fichier */
+		fclose(fichier);
+	}
+}
