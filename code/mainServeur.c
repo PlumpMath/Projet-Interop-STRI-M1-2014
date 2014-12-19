@@ -33,6 +33,7 @@ int main(int argc, char *argv[]) {
 					/* On regarde par quelle lettre commence l requete (S (stor) R (retr) Q (quit)) */
 					if(requete[0] == 'S'){
 						/* Demande d'envoi de fichier */
+						printf("Demande d'envoi d'un fichier\n");
 						recevoirFichier(client,requete);
 					}else{
 						if(requete[0] == 'R'){

@@ -142,6 +142,7 @@ int connecterUtilisateur(){
 	printf("%s",message);
 
 	/* On va lire le nom d'utilisateur au clavier */
+	fflush(stdin); /* On vide le tampon */
 	fgets(utilisateur,50,stdin);
 
 	/* On prepare la requete pour le serveur */
