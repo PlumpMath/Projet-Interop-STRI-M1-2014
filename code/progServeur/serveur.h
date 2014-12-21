@@ -14,14 +14,14 @@ typedef struct {
 
 
 /* Initialisation.
- * Creation du serveur en prcisant le service ou numro de port.
- * renvoie 1 si a c'est bien pass 0 sinon
+ * Creation du serveur en prÃ©cisant le service ou numÃ©ro de port.
+ * renvoie 1 si Ã§a c'est bien passÅ½ 0 sinon
  */
 int InitialisationAvecService(char *service);
 
 
 /* Attends qu'un client se connecte.
- * renvoie un pointeur vers une nouvelle structure Client  si a c'est bien pass NULL sinon
+ * renvoie un pointeur vers une nouvelle structure Client  si Ã§a c'est bien passÃ© NULL sinon
  */
 Client *AttenteClient();
 
@@ -33,7 +33,7 @@ char *Reception(Client *client);
 
 /* Envoie un message au client.
  * Attention, le message doit etre termine par \n
- * renvoie 1 si a c'est bien pass 0 sinon
+ * renvoie 1 si Âa c'est bien passÅ½ 0 sinon
  */
 int Emission(char *message, Client *client);
 
@@ -45,20 +45,20 @@ void TerminaisonClient(Client *client);
  */
 void Terminaison();
 
-/* Met tous les caractères d'une chaîne en majuscule */
+/* Met tous les caractÃ¨res d'une chaÃ®ne en majuscule */
 char * putMajuscule(char *ch);
 
-/* Liste le répertoire passé en paramètre */
+/* Liste le rÃ©pertoire passÃ© en paramÃ¨tre */
 char * listeDir(char *dir);
 
-/* Réalise la connexion du client en paramètre sur le serveur FTP 
+/* RÃ©alise la connexion du client en paramÃ¨tre sur le serveur FTP 
 retourne 1 si client connecte et 0 sinon*/
 int connecterClient(Client *client);
 
-/* Permet au client d'envoyer un fichier sur le serveur, si le fichier est déjà présent sur le serveur on écrase */
+/* Permet au client d'envoyer un fichier sur le serveur, si le fichier est dÃ©jÃ  prÃ©sent sur le serveur on Ã©crase */
 void recevoirFichier(Client *client, char *requete);
 
-/* Permet au serveur d'envoyer un fichier à un client qui en fait la demande */
+/* Permet au serveur d'envoyer un fichier Ã  un client qui en fait la demande */
 int envoyerFichier(Client *client, char *requete);
 
 #endif
