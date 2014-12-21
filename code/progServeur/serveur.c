@@ -41,8 +41,8 @@ socklen_t longeurAdr;
 
 
 /* Initialisation.
- * Creation du serveur en prŽcisant le service ou numŽro de port.
- * renvoie 1 si a c'est bien passŽ 0 sinon
+ * Creation du serveur en prÃ©cisant le service ou numÃ©ro de port.
+ * renvoie 1 si Ã§a c'est bien passÃ© 0 sinon
  */
 int InitialisationAvecService(char *service) {
 	int n;
@@ -62,21 +62,21 @@ int InitialisationAvecService(char *service) {
 	bzero(&hints, sizeof(struct addrinfo));
 	#endif
 
-	/* On initialise les variables en mode connecté */
+	/* On initialise les variables en mode connectÃ© */
 	hints.ai_flags = AI_PASSIVE;
 	hints.ai_family = AF_UNSPEC;
 	hints.ai_socktype = SOCK_STREAM;
 
-	/* On récupère les informations avec getaddrinfo() */
+	/* On rÃ©cupÃ¨re les informations avec getaddrinfo() */
 	if ( (n = getaddrinfo(NULL, service, &hints, &res)) != 0)  {
-			/* En cas d'échec on informe l'utilisateur */
+			/* En cas d'Ã©chec on informe l'utilisateur */
      		printf("Initialisation, erreur de getaddrinfo : %s", gai_strerror(n));
      		return 0;
 	}
-	/* On réalise ne sauvegarde des informations */
+	/* On rÃ©alise ne sauvegarde des informations */
 	ressave = res;
 
-	/* On créer le socket d'écoute pour les clients */
+	/* On crÃ©er le socket d'Ã©coute pour les clients */
 	do {
 		socketEcoute = socket(res->ai_family, res->ai_socktype, res->ai_protocol);
 		if (socketEcoute < 0)
@@ -101,28 +101,28 @@ int InitialisationAvecService(char *service) {
 	/* conserve la longueur de l'addresse */
 	longeurAdr = res->ai_addrlen;
 
-	/* On libère la sauvegarde */
+	/* On libÃ¨re la sauvegarde */
 	freeaddrinfo(ressave);
-	/* On créer une file d'attente de maximum 5 clients */
+	/* On crÃ©er une file d'attente de maximum 5 clients */
 	listen(socketEcoute, 5);
 	/* Success */
 	return 1;
 }
 
-/* Attends qu'un client se connecte, quand un client se connecte on lance un processus fils pour le traitement de sa requête */
+/* Attends qu'un client se connecte, quand un client se connecte on lance un processus fils pour le traitement de sa requÃªte */
 Client * AttenteClient() {
 	struct sockaddr *clientAddr;
 	char machine[NI_MAXHOST]; 
 	Client *client; /* Client qui se connecte /
 
-	/* On créer la structure client et on lui alloue de la mémoire */
+	/* On crÃ©er la structure client et on lui alloue de la mÃ©moire */
 	client = (Client*) malloc(sizeof(Client));
 	clientAddr = (struct sockaddr*) malloc(longeurAdr);
 
 	/* On connecte le client au socket*/
 	client->socketService = accept(socketEcoute, clientAddr, &longeurAdr);
 
-	/* On vérifie que la connexion du client au socket s'est bien passée */
+	/* On vÃ©rifie que la connexion du client au socket s'est bien passÃ©e */
 	if (client->socketService == -1) {
 		perror("AttenteClient, erreur de accept.");
 		free(clientAddr);
@@ -130,14 +130,14 @@ Client * AttenteClient() {
 		return 0;
 	}
 
-	/* On récupère les informations sur le client qui se connecte */
+	/* On rÃ©cupÃ¨re les informations sur le client qui se connecte */
 	if(getnameinfo(clientAddr, longeurAdr, machine, NI_MAXHOST, NULL, 0, 0) == 0) {
 		printf("Client sur la machine d'adresse %s connecte.\n", machine);
 	} else {
 		printf("Client anonyme connecte.\n");
 	}
 
-	/* On libère la mémoire allouée à l'adresse client */
+	/* On libÃ¨re la mÃ©moire allouÃ©e Ã  l'adresse client */
 	free(clientAddr);
 
 	/*
@@ -151,17 +151,17 @@ Client * AttenteClient() {
 /* Recoit un message envoye par le serveur.
  */
 char *Reception(Client *client) {
-	char message[LONGUEUR_TAMPON]; /* Message reçu du client */
+	char message[LONGUEUR_TAMPON]; /* Message reÃ§u du client */
 	unsigned short int messageLength; /* Variable contenant la taille du message */
 	
-	/* On remplit message de zéro pour connaitre la fin */
+	/* On remplit message de zÃ©ro pour connaitre la fin */
 	memset(message,0,sizeof message);
 
 	/* On bucle en attendant de recevoir le message du client */
 	while(recv(client->socketService,message,sizeof message,0) > 0){
-		messageLength = strlen(message); /* On récupère la longueur du message */
+		messageLength = strlen(message); /* On rÃ©cupÃ¨re la longueur du message */
 		if(messageLength > 0){
-			/* Si le message contient au moins 1 caractère on le retourne */
+			/* Si le message contient au moins 1 caractÃ¨re on le retourne */
 			return message;
 		}
 	}
@@ -172,13 +172,13 @@ char *Reception(Client *client) {
 int Emission(char *message, Client *client) {
 	int taille; /* Longueur du message */
 
-	/* On vérifie que le message se termine bien par \n */
+	/* On vÃ©rifie que le message se termine bien par \n */
 	if(strstr(message, "\n") == NULL) {
-		/* Si le message ne finit pas par \n, on le rajoute à la fin */
+		/* Si le message ne finit pas par \n, on le rajoute Ã  la fin */
 		strcat(message,"\n");
 	}
 
-	/* On récupère la taille du message */
+	/* On rÃ©cupÃ¨re la taille du message */
 	taille = strlen(message);
 
 	/* On envoi le message au client */
@@ -204,37 +204,37 @@ void Terminaison() {
 	close(socketEcoute);
 }
 
-/* Met tous les caractères d'une chaîne en majuscule */
+/* Met tous les caractÃ¨res d'une chaÃ®ne en majuscule */
 char * putMajuscule(char *ch){
-    int i; /* indice de parcour de la chaîne */
+    int i; /* indice de parcour de la chaÃ®ne */
     for(i=0;i<strlen(ch)-1;i++){
-        /* pour chaque caractères de ch on le remplace par la minuscule correspondante */
+        /* pour chaque caractÃ¨res de ch on le remplace par la minuscule correspondante */
         ch[i] = toupper(ch[i]);
     }
     return ch;
 }
 
-/* Liste le répertoire passé en paramètre, les différents éléments seront séparés par des # */
+/* Liste le rÃ©pertoire passÃ© en paramÃ¨tre, les diffÃ©rents Ã©lÃ©ments seront sÃ©parÃ©s par des # */
 char * listeDir(char *repCourrant){
 
 
 	DIR* dir = NULL; /* Dossier ouvert */
-	struct dirent* fic = NULL; /* fichier sélectionné */
+	struct dirent* fic = NULL; /* fichier sÃ©lectionnÃ© */
 	char * nomFic = NULL;
-	char * listeFic = NULL; /* Liste des des fichiers présents dans le dossier */
+	char * listeFic = NULL; /* Liste des des fichiers prÃ©sents dans le dossier */
 
-	/* On ouvre le répertoire passé en paramètre */
+	/* On ouvre le rÃ©pertoire passÃ© en paramÃ¨tre */
 	dir = opendir(repCourrant);
 
 
-	/* On vérifie que le dossier a bien été ouvert */
+	/* On vÃ©rifie que le dossier a bien Ã©tÃ© ouvert */
 	if(dir == NULL){
 		perror("");
 		return NULL;
 	}
 
 
-	/* On va lister l'ensemble du répertoire */
+	/* On va lister l'ensemble du rÃ©pertoire */
 	while((fic = readdir(dir)) != NULL){
 		nomFic = NULL;
 		nomFic = fic->d_name;
@@ -253,7 +253,7 @@ char * listeDir(char *repCourrant){
 	return listeFic;
 }
 
-/* Réalise la connexion du client en paramètre sur le serveur FTP 
+/* RÃ©alise la connexion du client en paramÃ¨tre sur le serveur FTP 
 retourne 1 si client connecte et 0 sinon*/
 int connecterClient(Client *client){
 	char *message = NULL; /* Message du client */
@@ -265,22 +265,22 @@ int connecterClient(Client *client){
 
 	/* On demande le nom d'utilisateur au client */
 	printf("On demande le nom d'utilisateur\n");
-	Emission("220 - Saisir utilisateur (max 50 caractères) : \n", client);
-	/* On récupère la réponse du client qui doit être sous forme USER utilisateur */
+	Emission("220 - Saisir utilisateur (max 50 caractÃ¨res) : \n", client);
+	/* On rÃ©cupÃ¨re la rÃ©ponse du client qui doit Ãªtre sous forme USER utilisateur */
 	message = Reception(client);
-	/* On alloue de la mémoire a la variable de sauvegarde pour pouvoir sauvegarder le message */
+	/* On alloue de la mÃ©moire a la variable de sauvegarde pour pouvoir sauvegarder le message */
 	messageSave = (char*) malloc(60);
-	/* On sauvegarde le message reçu */
+	/* On sauvegarde le message reÃ§u */
 	strcpy(messageSave,message);
 	/* On analyse le message du client pour voir si il est conforme */
-	/* On découpe le message du client pour extraire les informations */
+	/* On dÃ©coupe le message du client pour extraire les informations */
 	requete = strtok(message, " \n");
 	utilisateur = strtok(NULL," \n");
 	/* On teste que la requete est bien USER */
 	if(strcmp(requete,"USER") != 0){
 		/* requete incorrecte */
-		printf("Requête incorrecte : mauvaise commande\n");
-		Emission("500 - Requête incorrecte\n",client);
+		printf("RequÃªte incorrecte : mauvaise commande\n");
+		Emission("500 - RequÃªte incorrecte\n",client);
 		return 0;
 	}else{
 		/* On teste que l'utilisateur n'est pas NULL */
@@ -289,22 +289,22 @@ int connecterClient(Client *client){
 			Emission("501 - Utilisateur NULL ou vide\n",client);
 			return 0;
 		}else{
-			/* On teste maintenant que la requête n'est pas trop longue */
-			/* On créer une requete de test qui est de la bonne longueur */
+			/* On teste maintenant que la requÃªte n'est pas trop longue */
+			/* On crÃ©er une requete de test qui est de la bonne longueur */
 			char *testLongueurMessage;
-			/* On lui alloue de la mémoire */
+			/* On lui alloue de la mÃ©moire */
 			testLongueurMessage = (char*) malloc(60);
 			sprintf(testLongueurMessage,"USER %s\n",utilisateur);
-			/* On teste maintenant si la requete que l'on a reçu du client fait la bonne longueur */
+			/* On teste maintenant si la requete que l'on a reÃ§u du client fait la bonne longueur */
 			if(strlen(testLongueurMessage) != strlen(messageSave)){
 				/* requete incorrecte */
-				printf("Requête incorrecte : problème de longueur\n");
-				Emission("500 - Requête incorrecte\n",client);
+				printf("RequÃªte incorrecte : problÃ¨me de longueur\n");
+				Emission("500 - RequÃªte incorrecte\n",client);
 				return 0;
 			}else{
 				/* On autorise la connexion du client sur le serveur */
 				printf("Connexion autorisee pour l'utilisateur %s\n",utilisateur);
-				Emission("230 : Connexion établie\n",client);
+				Emission("230 : Connexion Ã©tablie\n",client);
 				return 1;
 			}
 		}
@@ -312,28 +312,28 @@ int connecterClient(Client *client){
 	
 }
 
-/* Permet au client d'envoyer un fichier sur le serveur, si le fichier est déjà présent sur le serveur on écrase */
+/* Permet au client d'envoyer un fichier sur le serveur, si le fichier est dÃ©jÃ  prÃ©sent sur le serveur on Ã©crase */
 void recevoirFichier(Client *client, char *requete){
-	char *requeteSave; /* sauvegarde de la requete passée en paramètre */
-	char *nomFichier; /* nom du fichier envoyé par l'utilisateur */
+	char *requeteSave; /* sauvegarde de la requete passÃ©e en paramÃ¨tre */
+	char *nomFichier; /* nom du fichier envoyÃ© par l'utilisateur */
 	char *commande; /* commande de l'utilisateur */
 	char fichierSave[100]; /* sauvegarde du nom du fichier */
 
-	/* On alloue de la mémoire à la sauvegarde de la requete */
+	/* On alloue de la mÃ©moire Ã  la sauvegarde de la requete */
 	requeteSave = (char*) malloc(100);
 	/* On sauvegarde la requete */
 	strcpy(requeteSave,requete);
-	/* On décompose la requete client pour extraire le nom du fichier et la commande */
+	/* On dÃ©compose la requete client pour extraire le nom du fichier et la commande */
 	commande = strtok(requete, " \n");
 	nomFichier = strtok(NULL, " \n");
 	/* on sauvegarde le nom du fichier */
 	strcpy(fichierSave,nomFichier);
 
-	/* On vérifie que la commande est bien STOR */
+	/* On vÃ©rifie que la commande est bien STOR */
 	if(strcmp(commande,"STOR") != 0){
 		/* On envoi l'erreur au client */
 		printf("Requete incorrecte : mauvaise commande\n");
-		Emission("500 - Requête incorrecte\n",client);
+		Emission("500 - RequÃªte incorrecte\n",client);
 	}else{
 		/* On teste que le chemin du fichier pas vide */
 		if(nomFichier == NULL || strcmp(nomFichier,"") == 0){
@@ -342,41 +342,41 @@ void recevoirFichier(Client *client, char *requete){
 			Emission("501 - Chemin du fichier NULL ou vide\n",client);
 		}else{
 			/* On teste maintenant la longueur de la requete */
-			/* On va donc comparer la requete sauvegardée à une requete que l'on monte pour le test */
+			/* On va donc comparer la requete sauvegardÃ©e Ã  une requete que l'on monte pour le test */
 			sprintf(requete,"STOR %s\n",nomFichier);
 			if(strlen(requeteSave) != strlen(requete)){
 				/* requete incorrecte */
-				printf("Requête incorrecte : problème de longueur\n");
-				Emission("500 - Requête incorrecte\n",client);
+				printf("RequÃªte incorrecte : problÃ¨me de longueur\n");
+				Emission("500 - RequÃªte incorrecte\n",client);
 			}else{
 				/* On demande maintenant le contenu du fichier au client */
-				Emission("150 - Transfert autorisé\n",client);
+				Emission("150 - Transfert autorisÃ©\n",client);
 				char *contenuFichier = NULL;
 				contenuFichier = Reception(client);
 
-				/* On teste que le contenu a bien été reçu */
+				/* On teste que le contenu a bien Ã©tÃ© reÃ§u */
 				if(contenuFichier == NULL){
-					printf("ERREUR : problème réception contenu fichier\n");
+					printf("ERREUR : problÃ¨me rÃ©ception contenu fichier\n");
 					Emission("451 - Erreur avec l'envoi du fichier\n",client);
 				}else{
-					/* On va maintenant créer le fichier */
-					FILE * fichier = NULL; /* Fichier dans lequel on va écrire */
-					strcpy(nomFichier,fichierSave); /* on récupère la sauveharde du nom du fichier */
+					/* On va maintenant crÃ©er le fichier */
+					FILE * fichier = NULL; /* Fichier dans lequel on va Ã©crire */
+					strcpy(nomFichier,fichierSave); /* on rÃ©cupÃ¨re la sauveharde du nom du fichier */
 					fichier = fopen(nomFichier,"wb");
-					/* On teste la création/ouverture du fichier */
+					/* On teste la crÃ©ation/ouverture du fichier */
 					if(fichier == NULL){
-						/* Probleme création fichier */
-						printf("ERREUR : création fichier KO\n");
-						Emission("451 - Erreur avec la création du fichier sur le serveur\n",client);
+						/* Probleme crÃ©ation fichier */
+						printf("ERREUR : crÃ©ation fichier KO\n");
+						Emission("451 - Erreur avec la crÃ©ation du fichier sur le serveur\n",client);
 					}else{
 						printf("%s\n",contenuFichier);
-						/* On va maintenant écrire le contenu dans la fichier */
+						/* On va maintenant Ã©crire le contenu dans la fichier */
 						if(fwrite(contenuFichier,strlen(contenuFichier),1,fichier) < 1){
-				    		/* Erreur écriture du fichier */
+				    		/* Erreur Ã©criture du fichier */
 				        	printf("ERREUR : ecriture fichier KO\n");
 				        	/* on ferme le fichier */
 				    		fclose(fichier);
-				        	Emission("451 - Erreur avec l'écriture dans le fichier sur le serveur\n",client);
+				        	Emission("451 - Erreur avec l'Ã©criture dans le fichier sur le serveur\n",client);
 				    	}else{
 				    		/* Si tout c'est bien on informe l'utilisateur */
 				    		printf("Transfert du fichier OK\n");
@@ -393,38 +393,38 @@ void recevoirFichier(Client *client, char *requete){
 
 }
 
-/* Permet au serveur d'envoyer un fichier à un client qui en fait la demande */
+/* Permet au serveur d'envoyer un fichier Ã  un client qui en fait la demande */
 int envoyerFichier(Client *client, char *requete){
-	char *requeteSave; /* sauvegarde de la requete passée en paramètre */
-	char *nomFichier; /* nom du fichier à envoyer */
+	char *requeteSave; /* sauvegarde de la requete passÃ©e en paramÃ¨tre */
+	char *nomFichier; /* nom du fichier Ã  envoyer */
 	char *commande; /* commande de l'utilisateur */
-	FILE * fichier = NULL; /* fichier à envoyer */
+	FILE * fichier = NULL; /* fichier Ã  envoyer */
 	char *contenuFichier; /* Contenu du fichier que l'on veut envoyer */
 	long taille; /* taille du fichier */
 	char fichierSave[100]; /* sauvegarde du nom du fichier */
-	char *resultatTelechargement; /* Ok ou KO en fonction du résultat du téléchargement */
+	char *resultatTelechargement; /* Ok ou KO en fonction du rÃ©sultat du tÃ©lÃ©chargement */
 
-	/* On alloue de la mémoire à la sauvegarde de la requete */
+	/* On alloue de la mÃ©moire Ã  la sauvegarde de la requete */
 	requeteSave = (char*) malloc(100);
 
-	/* On alloue de la mémoire pour la variable */
+	/* On alloue de la mÃ©moire pour la variable */
 	resultatTelechargement = (char*) malloc(5);
 
 	/* On sauvegarde la requete */
 	strcpy(requeteSave,requete);
 
-	/* On décompose la requete client pour extraire le nom du fichier et la commande */
+	/* On dÃ©compose la requete client pour extraire le nom du fichier et la commande */
 	commande = strtok(requete, " \n");
 	nomFichier = strtok(NULL, " \n");
 
 	/* on sauvegarde le nom du fichier */
 	strcpy(fichierSave,nomFichier);
 
-	/* On vérifie que la commande est bien RETR */
+	/* On vÃ©rifie que la commande est bien RETR */
 	if(strcmp(commande,"RETR") != 0){
 		/* On envoi l'erreur au client */
 		printf("Requete incorrecte : mauvaise commande\n");
-		Emission("500 - Requête incorrecte\n",client);
+		Emission("500 - RequÃªte incorrecte\n",client);
 		return 0;
 	}else{
 		/* On teste que le chemin du fichier pas vide */
@@ -435,16 +435,16 @@ int envoyerFichier(Client *client, char *requete){
 			return 0;
 		}else{
 			/* On teste maintenant la longueur de la requete */
-			/* On va donc comparer la requete sauvegardée à une requete que l'on monte pour le test */
+			/* On va donc comparer la requete sauvegardÃ©e Ã  une requete que l'on monte pour le test */
 			sprintf(requete,"RETR %s\n",nomFichier);
 			if(strlen(requeteSave) != strlen(requete)){
 				/* requete incorrecte */
-				printf("Requête incorrecte : problème de longueur\n");
-				Emission("500 - Requête incorrecte\n",client);
+				printf("RequÃªte incorrecte : problÃ¨me de longueur\n");
+				Emission("500 - RequÃªte incorrecte\n",client);
 				return 0;
 			}else{
-				/* On va maintenant ouvrir le fichier demandé */
-				strcpy(nomFichier,fichierSave); /* on récupère la sauveharde du nom du fichier */
+				/* On va maintenant ouvrir le fichier demandÃ© */
+				strcpy(nomFichier,fichierSave); /* on rÃ©cupÃ¨re la sauveharde du nom du fichier */
 				/* Ouverture du fichier en mode lecture */
 				fichier = fopen(nomFichier,"rb");
 				/* On teste l'ouverture du fichier */
@@ -454,17 +454,17 @@ int envoyerFichier(Client *client, char *requete){
 					Emission("550 - Impossible d'ouvrir le fichier\n",client);
 					return 0;
 				}else{
-					/* on récupère le contenu du fichier */
-					/* On récupère la taille du fichier */
+					/* on rÃ©cupÃ¨re le contenu du fichier */
+					/* On rÃ©cupÃ¨re la taille du fichier */
 					fseek (fichier , 0 , SEEK_END);
 			  		taille = ftell (fichier);
 			  		rewind (fichier);
-					/* On alloue de la mémoire pour le contenu du fichier */
+					/* On alloue de la mÃ©moire pour le contenu du fichier */
 					contenuFichier = (char*) malloc(taille);
 					/* on va maintenant lire le contenu du fichier */
 					if(fread(contenuFichier,1,taille,fichier)<1){
 						/* Erreur lecture fichier */
-						printf("ERREUR : lecture du fichier échouée\n");
+						printf("ERREUR : lecture du fichier Ã©chouÃ©e\n");
 						/* on ferme le fichier */
 				    		fclose(fichier);
 						Emission("550 - Impossible de lire le fichier\n",client);
@@ -482,21 +482,21 @@ int envoyerFichier(Client *client, char *requete){
 						}else{
 							/* on ferme le fichier */
 				    		fclose(fichier);
-							/* On informe que le téléchargement va débuter */
-							Emission("150 - Début du téléchargement\n",client);
+							/* On informe que le tÃ©lÃ©chargement va dÃ©buter */
+							Emission("150 - DÃ©but du tÃ©lÃ©chargement\n",client);
 							/* On envoi le contenu du fichier au client */
 							printf("Envoi du contenu fichier\n");
 							Emission(contenuFichier,client);
-							printf("Téléchargement OK\n");
+							printf("TÃ©lÃ©chargement OK\n");
 
-							/* On récupère la réponse avec le resultat du téléchargement */
+							/* On rÃ©cupÃ¨re la rÃ©ponse avec le resultat du tÃ©lÃ©chargement */
 							resultatTelechargement = Reception(client);
 							if(strstr(resultatTelechargement,"OK") != NULL){
 								/* On envoi le message 226 */
-								Emission("226 - Téléchargement terminé\n",client);
+								Emission("226 - TÃ©lÃ©chargement terminÃ©\n",client);
 							}else{
 								/* On envoi 451 */
-								Emission("451 - Téléchargement échoué\n",client);
+								Emission("451 - TÃ©lÃ©chargement Ã©chouÃ©\n",client);
 							}
 							return 1;
 						}
