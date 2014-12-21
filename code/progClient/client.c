@@ -30,14 +30,14 @@ int socketClient;
  */
 int InitialisationAvecService(char *machine, char *service) {
 	int n; /* Variable permettant de tester le retour de la fonction getaddrinfo() */
-	struct addrinfo	hints, *res, *ressave; /*Variables permettant la création et l'initialisation du socket */
+	struct addrinfo	hints, *res, *ressave; /*Variables permettant la crÃ©ation et l'initialisation du socket */
 
-/* On met les valeurs du mode connecté dans les variables */
+/* On met les valeurs du mode connectÃ© dans les variables */
 	bzero(&hints, sizeof(struct addrinfo));
 	hints.ai_family = AF_UNSPEC;
 	hints.ai_socktype = SOCK_STREAM;
 
-	/* On récupère les informations avec la fonction getaddrinfo() */
+	/* On rÃ©cupÃ¨re les informations avec la fonction getaddrinfo() */
 	if ( (n = getaddrinfo(machine, service, &hints, &res)) != 0)  {
 			/* En casd'erreur on informe l'utilisateur */
      		fprintf(stderr, "Initialisation, erreur de getaddrinfo : %s", gai_strerror(n));
@@ -53,7 +53,7 @@ int InitialisationAvecService(char *machine, char *service) {
 		if (socketClient < 0)
 			continue;	/* ignore this one */
 
-		/* On réalise une demande de connexion sur le socket */
+		/* On rÃ©alise une demande de connexion sur le socket */
 		if (connect(socketClient, res->ai_addr, res->ai_addrlen) == 0)
 			break;		/* success */
 
@@ -61,11 +61,11 @@ int InitialisationAvecService(char *machine, char *service) {
 	} while ( (res = res->ai_next) != NULL);
 
 	if (res == NULL) {
-     		perror("ERREUR : problème de connexion au serveur\n");
+     		perror("ERREUR : problÃ¨me de connexion au serveur\n");
      		return 0;
 	}
 
-	freeaddrinfo(ressave); /* Si tout est ok on libère l variable de sauvegarde */
+	freeaddrinfo(ressave); /* Si tout est ok on libÃ¨re l variable de sauvegarde */
 
 	/* Success */
 	return 1;
@@ -74,19 +74,19 @@ int InitialisationAvecService(char *machine, char *service) {
 /* Recoit un message envoye par le serveur.
  */
 char *Reception() {
-	char message[LONGUEUR_TAMPON]; /* variale contenant le message reçu */
+	char message[LONGUEUR_TAMPON]; /* variale contenant le message reÃ§u */
 	unsigned short int messageLength; /* Variable contenant la taille du message */
 	
-	/* On met le tampon à zéro */
+	/* On met le tampon Ã  zÃ©ro */
 	memset(message,0,sizeof message);
 
-	/* On récupère le message du serveur */
+	/* On rÃ©cupÃ¨re le message du serveur */
 	if(recv(socketClient,message,sizeof message,0) == -1){
-		/* Si on récupère rien on retourne null */
+		/* Si on rÃ©cupÃ¨re rien on retourne null */
 		return NULL;
 	}
 
-	/* On retourne le message que on a reçu du serveur */
+	/* On retourne le message que l'on a reÃ§u du serveur */
 	return message;
 }
 
@@ -95,10 +95,10 @@ char *Reception() {
 int Emission(char *message) {
 	/* On regarde si le message finit bien par \n */
 	if(strstr(message, "\n") == NULL) {
-		/* Si le message ne finit pas par \n, on le rajoute à la fin */
+		/* Si le message ne finit pas par \n, on le rajoute Ã  la fin */
 		strcat(message,"\n");
 	}
-	/* On récupère la taille du message */
+	/* On rÃ©cupÃ¨re la taille du message */
 	int taille = strlen(message);
 	/* On envoi le message au serveur */
 	if (send(socketClient, message, taille,0) == -1) {
@@ -116,7 +116,7 @@ void Terminaison() {
 	close(socketClient);
 }
 
-/* Récupère la liste des fichiers dans le répertoire courrant du serveur */
+/* RÃ©cupÃ¨re la liste des fichiers dans le rÃ©pertoire courrant du serveur */
 void listeFichiers(){
 
 }
@@ -129,13 +129,13 @@ int connecterUtilisateur(){
 
 	char *message = NULL; /* Variable qui va contenir les messages du serveur */
 	char utilisateur[50]; /* Nom d'utilisateur avec lequel on veut se connecter */
-	int erreur = 0; /* variable qui permet de tester la présence d'une erreur */
+	int erreur = 0; /* variable qui permet de tester la prÃ©sence d'une erreur */
 	char * requete; /* Requete que l'on va envoyer au serveur */
 
-	/* On alloue de la mémoire pour la variable requete */
+	/* On alloue de la mÃ©moire pour la variable requete */
 	requete = (char*) malloc(60);
 
-	/* On récupère le message du serveur */
+	/* On rÃ©cupÃ¨re le message du serveur */
 	message = Reception();
 
 	/* On affiche ce message */
@@ -152,46 +152,46 @@ int connecterUtilisateur(){
 	/* On envoi la requete au serveur */
 	Emission(requete);
 
-	/* On récupère la reponse du serveur */
+	/* On rÃ©cupÃ¨re la reponse du serveur */
 	message = NULL;
 	message = Reception();
 
-	/* On affiche cette réponse */
+	/* On affiche cette rÃ©ponse */
 	printf("%s",message);
 
-	/* On analyse la réponse du serveur pour voir la connxion est OK , il faut un message 230 */
+	/* On analyse la rÃ©ponse du serveur pour voir la connxion est OK , il faut un message 230 */
 	if(strstr(message,"230") != NULL){
-		/* La réponse du serveur est bien de type 230 */
+		/* La rÃ©ponse du serveur est bien de type 230 */
 		return 1;
 	}else{
 		return 0;
 	}
 }
 
-/* Envoi un fichier présent dans le dossier courrant sur le serveur */
+/* Envoi un fichier prÃ©sent dans le dossier courrant sur le serveur */
 void envoyerFichier(char *nomFichier){
 	FILE * fichier = NULL; /* Fichier que l'on veut envoyer */
 	char *contenuFichier; /* Contenu du fichier que l'on veut envoyer */
-	char *reponseServeur; /* Réponse du serveur */
+	char *reponseServeur; /* RÃ©ponse du serveur */
 	char requete[100]; /* requete qu'on envoi au serveur */
 	long taille; /* taille du fichier */
 
-	/* On supprime le \n à la fin du nomFichier */
+	/* On supprime le \n Ã  la fin du nomFichier */
 	nomFichier[strlen(nomFichier)-1] = NULL;
 
 	/* Ouverture du fichier en mode lecture */
 	fichier = fopen(nomFichier,"rb");
 	/* On teste l'ouverture du fichier */
 	if(fichier == NULL){
-		/* problème ouverture */
-		printf("ERREUR : ouverture du fichier échouée\n");
+		/* problÃ¨me ouverture */
+		printf("ERREUR : ouverture du fichier Ã©chouÃ©e\n");
 	}else{
-		/* On récupère la taille du fichier */
+		/* On rÃ©cupÃ¨re la taille du fichier */
 		fseek (fichier , 0 , SEEK_END);
   		taille = ftell (fichier);
   		rewind (fichier);
 
-  		/* On alloue de la mémoire pour le contenu du fichier */
+  		/* On alloue de la mÃ©moire pour le contenu du fichier */
   		contenuFichier = malloc(taille);
 
 		/* on va maintenant lire le contenu du fichier */
@@ -199,7 +199,7 @@ void envoyerFichier(char *nomFichier){
 			/* Erreur lecture fichier */
 			/* On ferme le fichier */
 			fclose(fichier);
-			printf("ERREUR : lecture du fichier échouée\n");
+			printf("ERREUR : lecture du fichier Ã©chouÃ©e\n");
 		}else{
 			/* On ferme le fichier */
 			fclose(fichier);
@@ -208,18 +208,18 @@ void envoyerFichier(char *nomFichier){
 				/* Contenu fichier null */
 				printf("ERREUR : contenu du fichier null\n");
 			}else{
-				/* on prépare la requete pour le serveur */
+				/* on prÃ©pare la requete pour le serveur */
 				sprintf(requete,"STOR %s\n",nomFichier);
 				/* On envoi la requete au serveur */
 				Emission(requete);
-				/* On affiche la réponse du serveur */
+				/* On affiche la rÃ©ponse du serveur */
 				reponseServeur = Reception();
 				printf("%s",reponseServeur);
-				/* Si la réponse est 150 - * on envoi le contenu */
+				/* Si la rÃ©ponse est 150 - * on envoi le contenu */
 				if(strstr(reponseServeur,"150") != NULL){
 					/* Le serveur accepte la demande, on envoi le contenu */
 					Emission(contenuFichier);
-					/* On récupère la reponse du serveur */
+					/* On rÃ©cupÃ¨re la reponse du serveur */
 					reponseServeur = Reception();
 					printf("%s",reponseServeur);	
 				}
@@ -228,61 +228,61 @@ void envoyerFichier(char *nomFichier){
 	}
 }
 
-/* Télécharge un fichier depuis le serveur */
+/* TÃ©lÃ©charge un fichier depuis le serveur */
 void telechargerFichier(char *nomFichier){
-	FILE * fichier = NULL; /* Fichier que l'on veut créer */
-	char *contenuFichier; /* Contenu du fichier que l'on veut créer */
-	char *reponseServeur; /* Réponse du serveur */
+	FILE * fichier = NULL; /* Fichier que l'on veut crÃ©er */
+	char *contenuFichier; /* Contenu du fichier que l'on veut crÃ©er */
+	char *reponseServeur; /* RÃ©ponse du serveur */
 	char requete[100]; /* requete qu'on envoi au serveur */
 	long taille; /* taille du fichier */
 
-	/* On supprime le \n à la fin du nomFichier */
+	/* On supprime le \n Ã  la fin du nomFichier */
 	nomFichier[strlen(nomFichier)-1] = NULL;
 
-	/* On vérifie que le nom du fichier est non null ou vide */
+	/* On vÃ©rifie que le nom du fichier est non null ou vide */
 	if(nomFichier == NULL || strcmp(nomFichier,"") == 0){
 		/* Fichier null ou vide */
 		printf("ERREUR : le nom du fichier est vide\n");
 	}else{
-		/* On prépare la requete pour le serveur */
+		/* On prÃ©pare la requete pour le serveur */
 		sprintf(requete,"RETR %s\n",nomFichier);
 		/* On envoi la requete */
 		Emission(requete);
-		/* On affiche la réponse du serveur */
+		/* On affiche la rÃ©ponse du serveur */
 		reponseServeur = Reception();
 		printf("%s",reponseServeur);
-		/* Si la réponse est 150 - * on récupère le contenu le contenu */
+		/* Si la rÃ©ponse est 150 - * on rÃ©cupÃ¨re le contenu le contenu */
 		if(strstr(reponseServeur,"150") != NULL){
-			/* On récupère le contenu du fichier */
+			/* On rÃ©cupÃ¨re le contenu du fichier */
 			contenuFichier = Reception();
 			/* On teste que le contenu est non null */
 			if(contenuFichier == NULL){
 				/* Erreur avec le transfert du contenu */
 				printf("ERREUR : Contenu du fichier NULL\n");
 			}else{
-				/* On récupère le message du serveur et on l'affiche */
-				/* On va maintenant créer le fichier en local */
+				/* On rÃ©cupÃ¨re le message du serveur et on l'affiche */
+				/* On va maintenant crÃ©er le fichier en local */
 				/* Ouverture du fichier en mode lecture */
 				fichier = fopen(nomFichier,"wb");
 				/* On teste l'ouverture du fichier */
 				if(fichier == NULL){
-					/* problème ouverture */
-					printf("ERREUR : ouverture du fichier échouée\n");
+					/* problÃ¨me ouverture */
+					printf("ERREUR : ouverture du fichier Ã©chouÃ©e\n");
 				}else{
-					/* On écrit le contenu du fichier téléchargé dans le fichier local */
+					/* On Ã©crit le contenu du fichier tÃ©lÃ©chargÃ© dans le fichier local */
 					if(fwrite(contenuFichier,strlen(contenuFichier),1,fichier) < 1){
-				    	/* Erreur écriture du fichier */
+				    	/* Erreur Ã©criture du fichier */
 				    	/* On ferme le fichier */
 						fclose(fichier);
-				        printf("ERREUR : ecriture du contenu du fichier échouée\n");
-				        /* On informe le serveur que le fichier est bien créé */
+				        printf("ERREUR : ecriture du contenu du fichier Ã©chouÃ©e\n");
+				        /* On informe le serveur que le fichier est bien crÃ©Ã© */
 				    	Emission("KO\n");
 				    }else{
 				    	/* On ferme le fichier */
 				    	fclose(fichier);
-				    	/* On informe le serveur que le fichier est bien créé */
+				    	/* On informe le serveur que le fichier est bien crÃ©Ã© */
 				    	Emission("OK\n");
-				    	/* On récupère la réponse du serveur et on l'affiche*/
+				    	/* On rÃ©cupÃ¨re la rÃ©ponse du serveur et on l'affiche*/
 				    	reponseServeur = Reception();
 				    	printf("%s",reponseServeur);
 				    }
