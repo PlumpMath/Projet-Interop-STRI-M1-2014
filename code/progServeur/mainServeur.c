@@ -7,7 +7,7 @@
 #define FALSE 0
 
 int main(int argc, char *argv[]) {
-	Client *client; /* Client connecté sur le serveur */
+	Client *client; /* Client connecte sur le serveur */
 	int termine; /* variable qui permet de savoir si un client souhaite terminer sa session */
 	char *requete; /* Requete du client */
 
@@ -16,13 +16,13 @@ int main(int argc, char *argv[]) {
 
 	/* On boucle en attendant les connexions des clients */
 	while(1) {
-		/* On récupère le client qui s'est connecté au serveur */
+		/* On recupere le client qui s'est connecte au serveur */
 		client = AttenteClient();
 		if(connecterClient(client) == 1){
-			/* On va réaliser le traitement du client */
+			/* On va realiser le traitement du client */
 			do{
 				termine = FALSE; /* On met termine a 0 (faux) */
-				/* On récupère la requete du client */
+				/* On recupere la requete du client */
 				requete = Reception(client);
 				printf("On a recu : %s",requete);
 				/* On teste que la requete n'est pas vide */
@@ -31,17 +31,17 @@ int main(int argc, char *argv[]) {
 					printf("ERREUR : requete nulle\n");
 					Emission("ERREUR : requete nulle\n",client);
 				}else{
-					/* On regarde par quelle lettre commence l requete (S (stor) R (retr) Q (quit)) */
+					/* On regarde par quelle lettre commence la requete (S (stor) R (retr) Q (quit)) */
 					if(requete[0] == 'S'){
-						/* Demande d'envoi de fichier */
-						printf("Demande d'envoi d'un fichier\n");
+						/* Demande d'envoie de fichier */
+						printf("Demande d'envoie d'un fichier\n");
 						recevoirFichier(client,requete);
 					}else{
 						if(requete[0] == 'R'){
-							/* Demande de téléchargement d'un fichier */
-							printf("Demande de téléchargement de fichier\n");
+							/* Demande de telechargement d'un fichier */
+							printf("Demande de telechargement de fichier\n");
 							if(envoyerFichier(client,requete) == 1){
-								Emission("226 - Téléchargement terminé\n",client);
+								Emission("226 - Telechargement termine\n",client);
 							}
 						}else{
 							if(requete[0] == 'Q'){
@@ -51,7 +51,7 @@ int main(int argc, char *argv[]) {
 								Emission("530 - Fin de connexion\n",client);
 							}else{
 								/* Requete inconnue */
-								printf("ERREUR : requête inconnue\n");
+								printf("ERREUR : requete inconnue\n");
 								Emission("500 - Commande non reconnue\n",client);
 								termine = TRUE;
 							}
@@ -62,7 +62,7 @@ int main(int argc, char *argv[]) {
 		}
 	}
 
-	/* On libère le socket */
+	/* On libere le socket */
 	Terminaison();
 	return 0;
 }

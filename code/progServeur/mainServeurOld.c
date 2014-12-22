@@ -7,22 +7,22 @@
 #define FALSE 0
 
 int main(int argc, char *argv[]) {
-	Client *client; /* Variable permettant de récupérer le client connecté sur le serveur */
-	int termine; /* Variable qui permet de savoir si un client a terminé ses traitements */
-	char *message = NULL; /* Variable pour les requêtes clients */
-	char *commande = NULL; /* Commande FTP envoyer par un utilisateur */
+	Client *client; /* Variable permettant de recuperer le client connecte sur le serveur */
+	int termine; /* Variable qui permet de savoir si un client a termine ses traitements */
+	char *message = NULL; /* Variable pour les requetes clients */
+	char *commande = NULL; /* Commande FTP envoyee par un utilisateur */
 	
 	/* initialisation du serveur */
 	if(InitialisationAvecService(argv[1]) == 1){
 		/* Initialisation OK */
 		printf("Initialisation du serveur -> OK \n");
 	}else{
-		/* Problème d'initialisation */
+		/* Probleme d'initialisation */
 		return -1;
 	}
 
 	
-	char * test =listeDir("/home/florian/Dropbox/STRI/cours/interop/projet1/fichiersServeur");
+	char * test = listeDir("/home/florian/Dropbox/STRI/cours/interop/projet1/fichiersServeur");
 	if(test == NULL){
 		printf("test = NULL\n");
 		return -1;
@@ -31,40 +31,40 @@ int main(int argc, char *argv[]) {
 
 	/* On boucle pour avoir un service continu */
 	while(1){
-		/* On récupère le client qui se connecte sur le serveur*/
+		/* On recupere le client qui se connecte sur le serveur*/
 		client = AttenteClient();
-		/* On met la variable de fin des traitements à faux */
+		/* On met la variable de fin des traitements a faux */
 		termine = FALSE;
 		do{
-			/* On vérifie que la variable message est bien positionnée sur NULL et sinon on la met à NULL */
+			/* On verifie que la variable message est bien positionnee sur NULL et sinon on la met a NULL */
 			if(message != NULL){
 				message = NULL;
 			}
-			/* On récupère la requête du client */
+			/* On recupere la requete du client */
 			message = Reception(client);
-			/* On teste si on a reçu quelque chose */
+			/* On teste si on a recu quelque chose */
 			if(message != NULL && strlen(message) > 0){
 
-				/* On a bien reçu la requête du client 
-				 Requête sous forme comande#arg1#arg2... 
-				 On récupère donc dans un premier temps la commande */
+				/* On a bien recu la requete du client 
+				 Requete sous forme comande#arg1#arg2... 
+				 On recupere donc dans un premier temps la commande */
 
-				 /* On regarde si commande est bien vide et sinon on le fou à NULL */
+				 /* On regarde si commande est bien vide et sinon on le mets a NULL */
 				 if(commande != NULL){
 				 	commande = NULL;
 				 }
 
-				 /* On récupère la commande dans la variable commande */
+				 /* On recupere la commande dans la variable commande */
 				 if(sscanf(message,"%s#",commande) > 0){
-				 	/* On met la commande en majuscule pour éviter les problèmes de casse */
+				 	/* On met la commande en majuscule pour eviter les problemes de casse */
 				 	commande = putMajuscule(commande);
-				 	printf("On a reçu la commande : %s\n", commande);
+				 	printf("On a recu la commande : %s\n", commande);
 				 }
 			}
 
 		}while(termine != TRUE);
 	}
-	/* On libère le socket */
+	/* On libere le socket */
 	Terminaison();
 	return 0;
 }
