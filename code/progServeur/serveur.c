@@ -464,7 +464,7 @@ int envoyerFichier(Client *client, char *requete){
 					/* on va maintenant lire le contenu du fichier */
 					if(fread(contenuFichier,1,taille,fichier)<1){
 						/* Erreur lecture fichier */
-						printf("ERREUR : lecture du fichier échouée\n");
+						printf("ERREUR : lecture du fichier echouee\n");
 						/* on ferme le fichier */
 				    		fclose(fichier);
 						Emission("550 - Impossible de lire le fichier\n",client);
@@ -483,7 +483,7 @@ int envoyerFichier(Client *client, char *requete){
 							/* on ferme le fichier */
 				    		fclose(fichier);
 							/* On informe que le telechargement va debuter */
-							Emission("150 - Début du telechargement\n",client);
+							Emission("150 - Debut du telechargement\n",client);
 							/* On envoie le contenu du fichier au client */
 							printf("Envoi du contenu fichier\n");
 							Emission(contenuFichier,client);
@@ -496,7 +496,7 @@ int envoyerFichier(Client *client, char *requete){
 								Emission("226 - Telechargement termine\n",client);
 							}else{
 								/* On envoie 451 */
-								Emission("451 - Telechargement échoué\n",client);
+								Emission("451 - Telechargement echoue\n",client);
 							}
 							return 1;
 						}

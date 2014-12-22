@@ -46,10 +46,10 @@ int main(int argc, char *argv[]) {
 			if(message != NULL && strlen(message) > 0){
 
 				/* On a bien recu la requete du client 
-				 Requete sous forme comande#arg1#arg2... 
+				 Requete sous forme commande#arg1#arg2... 
 				 On recupere donc dans un premier temps la commande */
 
-				 /* On regarde si commande est bien vide et sinon on le mets a NULL */
+				 /* On regarde si commande est bien vide et sinon on le met a NULL */
 				 if(commande != NULL){
 				 	commande = NULL;
 				 }

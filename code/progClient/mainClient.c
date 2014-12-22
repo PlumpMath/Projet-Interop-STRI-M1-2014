@@ -9,7 +9,7 @@
 
 int main(int argc, char *argv[]) {
 	char requete[100]; /* requete que l'on va envoyer au serveur */
-	int etatConnexion; /* 1 : connecter / 0 : non connecte */
+	int etatConnexion; /* 1 : connecte / 0 : non connecte */
 	int choix; /* Choix pour le menu principal */
 	char nomFichier[100]; /* Nom du fichier */
 	int c; /* permet de vider le buffer */
@@ -35,7 +35,7 @@ int main(int argc, char *argv[]) {
 			printf("-MENU PRINCIPAL-\n\n");
 			printf("1 : Envoyer un fichier sur le serveur\n");
 			printf("2 : Telecharger un fichier stocke sur le serveur\n");
-			printf("0 : Déconnexion\n\n");
+			printf("0 : Se déconnecter\n\n");
 			printf("Votre choix : ");
 			/* On recupere le choix de l'utilisateur */
 			if(scanf("%d",&choix) < 1){

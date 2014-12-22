@@ -26,7 +26,7 @@ int socketClient;
 
 /* Initialisation.
  * Connexion au serveur sur la machine donnee et au service donne.
- * Utilisez localhost pour un fonctionnement local.
+ * Utiliser localhost pour un fonctionnement local.
  */
 int InitialisationAvecService(char *machine, char *service) {
 	int n; /* Variable permettant de tester le retour de la fonction getaddrinfo() */
@@ -71,7 +71,7 @@ int InitialisationAvecService(char *machine, char *service) {
 	return 1;
 }
 
-/* Recoit un message envoyé par le serveur.
+/* Recoit un message envoye par le serveur.
  */
 char *Reception() {
 	char message[LONGUEUR_TAMPON]; /* variable contenant le message reçu */
@@ -128,7 +128,7 @@ retourne 1 si la connexion est OK et 0 sinon
 int connecterUtilisateur(){
 
 	char *message = NULL; /* Variable qui va contenir les messages du serveur */
-	char utilisateur[50]; /* Nom d'utilisateur avec lequel on veut se connecter */
+	char utilisateur[50]; /* Nom d'utilisateur avec lequel on veut se connecte */
 	int erreur = 0; /* variable qui permet de tester la presence d'une erreur */
 	char * requete; /* Requete que l'on va envoyer au serveur */
 

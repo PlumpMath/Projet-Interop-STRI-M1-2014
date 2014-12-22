@@ -3,8 +3,8 @@
 
 /* Initialisation.
  * Connexion au serveur sur la machine donnee et au service donne.
- * Utilisez localhost pour un fonctionnement local.
- * renvoie 1 si Áça c'est bien passe 0 sinon
+ * Utiliser localhost pour un fonctionnement local.
+ * renvoie 1 si ca c'est bien passe 0 sinon
  */
 int InitialisationAvecService(char *machine, char *service);
 
@@ -16,12 +16,12 @@ char *Reception();
 
 /* Envoie un message au serveur.
  * Attention, le message doit etre termine par \n
- * renvoie 1 si ça c'est bien passe 0 sinon
+ * renvoie 1 si çca c'est bien passe 0 sinon
  */
 int Emission(char *message);
 
 /* Recoit des donnees envoyees par le serveur.
- * renvoie le nombre d'octets reçus, 0 si la connexion est fermee,
+ * renvoie le nombre d'octets recus, 0 si la connexion est fermee,
  * un nombre negatif en cas d'erreur
  */
 int ReceptionBinaire(char *donnees, size_t tailleMax);
