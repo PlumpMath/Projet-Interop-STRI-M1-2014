@@ -470,7 +470,6 @@ int envoyerFichier(Client *client, char *requete){
 						Emission("550 - Impossible de lire le fichier\n",client);
 						return 0;
 					}else{
-						printf("1\n");
 						/* On teste que contenu fichier est non null */
 						if(contenuFichier == NULL){
 							/* Contenu fichier null */
@@ -502,6 +501,69 @@ int envoyerFichier(Client *client, char *requete){
 						}
 					}
 				}
+			}
+		}
+	}
+}
+
+
+/* Envoi en mode bloc, retourne 1 si ok et 0 sinon */
+int envoyerFichierBloc(Client *client, char *requete){
+	long tailleFichier; /* Taille du fichier en octet */
+	char *contenuFichier; /* Contenu du fichier que l'on veut envoyer */
+	FILE * fichier; /* Fichier que l'on veut envoyer */
+	char *nomFichier; /* Chemin du fichier que l'on veut envoyer */
+	int nombreBlocsRequis; /* Nombre de bloc que l'on va envoyer*/
+	int i; /* indice de parcours de la boucle */
+	char * bloc; /* bloc de donnée 4096 octets de données et 3 octets d'en-tête */
+
+	/* On définit la taille d'un bloc à 4096 octets */
+	int tailleBloc = 4096;
+
+	/* On alloue de la mémoire pour le bloc */
+	bloc = (char*) malloc(4099);
+
+	/* A FAIRE : Tous les tests sur la requête */
+
+	/* On ouvre le fichier en mode binaire */
+	fichier = NULL; /* on met fichier à NULL pour bien pouvoir tester l'ouverture */
+	fichier = fopen(nomFichier,"rb");
+	/* On teste l'ouverture du fichier */
+	if(fichier == NULL){
+		/* Echec de l'ouverture */
+		printf("ERREUR : ouverture du fichier impossible\n");
+		Emission("550 - Impossible d'ouvrir le fichier\n",client);
+		return 0;
+	}else{
+		/* Ouverture OK */
+		/* On recupere la taille du fichier */
+		fseek (fichier , 0 , SEEK_END);
+		tailleFichier = ftell (fichier);
+		rewind (fichier);
+		/* On alloue de la memoire pour le contenu du fichier */
+		contenuFichier = (char*) malloc(tailleFichier);
+		/* On récupère le contenu du fichier */
+		if(fread(contenuFichier,1,tailleFichier,fichier)<1){
+			/* Erreur lecture fichier */
+			printf("ERREUR : lecture du fichier echouee\n");
+			/* on ferme le fichier */
+			fclose(fichier);
+			Emission("550 - Impossible de lire le fichier\n",client);
+			return 0;
+		}else{
+			/* On va maintenant calculer le nombre de blocs à envoyer */
+			nombreBlocsRequis = tailleFichier / tailleBloc; /* On divise la taille du fichier par la longueur d'un bloc */
+			/* On regarde si il faut rajouter un bloc en plus pour les octets manquants */
+			if(tailleFichier % tailleBloc != 0){
+				/* On rajoute un bloc de plus pour la fin du fichier */
+				nombreBlocsRequis++;
+			}
+			/* On fait un boucle sur le nombre de bloc requis et on envoit les blocs les uns à la suite des autres */
+			for(i=0;i<nombreBlocsRequis;i++){
+				/* On récupère le bloc numéro i */
+				/* On prépare l'entête */
+				/* On prépare le bloc i */
+				/* On envoi le bloc numéro i */
 			}
 		}
 	}

@@ -61,4 +61,7 @@ void recevoirFichier(Client *client, char *requete);
 /* Permet au serveur d'envoyer un fichier a un client qui en fait la demande */
 int envoyerFichier(Client *client, char *requete);
 
+/* Envoi en mode bloc, retourne 1 si ok et 0 sinon */
+int envoyerFichierBloc(Client *client, char *requete);
+
 #endif

@@ -1,19 +1,13 @@
-Avancement du projet :
+Avancement V2 projet
+====================
 
-=> ETAPE 1 :
+Objectif V2 : Reprise sur erreur + mode bloc
+-----------
 
-	Fonctions déjà implémentées :
+* A FAIRE : *
 
-	 - Sockets client et serveur
-	 - lister les fichiers présents dans un répertoire
-	 - mettre tous les caractères d'une chaine en majuscule
-	 - Serveur : connecterClient => permet d'établir la connexion au serveur FTP (connect/ 220 - user / 230 - Connexion)
+	Client :
+		- Reprise sur erreur en cas de problème à partir des segments déjà téléchargés
 
-	Fonctions à faire :
-
-	- envoi / réception fichier
-	- connecter client : client
-	- traiter requete client : serveur
-	- envoyer requete serveur : client
-
-=> AUTRES ETAPE A VENIR ...
+	Serveur :
+		- Emission en mode bloc avec compatage des segments pour gérer la réemission sur erreur
