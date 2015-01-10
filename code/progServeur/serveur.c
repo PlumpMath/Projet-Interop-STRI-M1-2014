@@ -253,6 +253,23 @@ char * listeDir(char *repCourrant){
 	return listeFic;
 }
 
+/*
+Paramètres : str : chaine principale / len : longueur de la sous-chaine / pos : début de la sous-chaine  
+Extrait la sous-chaine de longueur "len" à partir du carcatère numéro "pos" dans la chaine "str" 
+*/
+char *extraireSousChaine(char *str, long len, long pos){
+	long i; /* indice de parcours de la chaine */
+	char sousChaine[len]; /* Sous chaine que l'on va retourner */
+
+	/* On se positionne sur le début de la sous chaine et on récupère les i caractères */
+	for(i=pos;i<(pos+len);i++){
+		sousChaine[i-pos] = str[i];
+	}
+
+	/* On retourne la sous chaine */
+	return sousChaine;
+}
+
 /* Realise la connexion du client en parametre sur le serveur FTP 
 retourne 1 si client connecte et 0 sinon*/
 int connecterClient(Client *client){
@@ -520,7 +537,7 @@ int envoyerFichierBloc(Client *client, char *requete){
 	/* On définit la taille d'un bloc à 4096 octets */
 	int tailleBloc = 4096;
 
-	/* On alloue de la mémoire pour le bloc */
+	/* On alloue de la mémoire pour le bloc, 4096 pour les données + 3 pour les en-têtes */
 	bloc = (char*) malloc(4099);
 
 	/* A FAIRE : Tous les tests sur la requête */
@@ -551,6 +568,8 @@ int envoyerFichierBloc(Client *client, char *requete){
 			Emission("550 - Impossible de lire le fichier\n",client);
 			return 0;
 		}else{
+			/* On ferme le fichier */
+			fclose(fichier);
 			/* On va maintenant calculer le nombre de blocs à envoyer */
 			nombreBlocsRequis = tailleFichier / tailleBloc; /* On divise la taille du fichier par la longueur d'un bloc */
 			/* On regarde si il faut rajouter un bloc en plus pour les octets manquants */
@@ -560,11 +579,24 @@ int envoyerFichierBloc(Client *client, char *requete){
 			}
 			/* On fait un boucle sur le nombre de bloc requis et on envoit les blocs les uns à la suite des autres */
 			for(i=0;i<nombreBlocsRequis;i++){
-				/* On récupère le bloc numéro i */
+				printf("Emission du bloc %d\n",i);
+				/* on vide les variables */
+				memset(bloc,0,sizeof(bloc));
 				/* On prépare l'entête */
+				if(i != (nombreBlocsRequis-1)){
+					/* si on est pas sur le dernier bloc */
+					strcpy(bloc,"000000000000000000004096");
+				}else{
+					/* Si on est sur le dernier bloc */
+					strcpy(bloc,"000000640000000000004096");
+				}
 				/* On prépare le bloc i */
+				strcat(extraireSousChaine(contenuFichier,4096,(i*4096)),bloc);
 				/* On envoi le bloc numéro i */
+				Emission(bloc,client);
 			}
+			/* Fin envoi des blocs */
+			printf("Tous les blocs ont été envoyés\n");
 		}
 	}
 }

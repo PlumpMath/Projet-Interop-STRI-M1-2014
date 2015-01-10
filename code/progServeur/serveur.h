@@ -51,6 +51,12 @@ char * putMajuscule(char *ch);
 /* Liste le repertoire passe en parametre */
 char * listeDir(char *dir);
 
+/*
+Paramètres : str : chaine principale / len : longueur de la sous-chaine / pos : début de la sous-chaine  
+Extrait la sous-chaine de longueur "len" à partir du carcatère numéro "pos" dans la chaine "str" 
+*/
+char *extraireSousChaine(char *str, long len, long pos);
+
 /* Realise la connexion du client en parametre sur le serveur FTP 
 retourne 1 si client connecte et 0 sinon*/
 int connecterClient(Client *client);
