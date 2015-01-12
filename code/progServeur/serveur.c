@@ -533,6 +533,10 @@ int envoyerFichierBloc(Client *client, char *requete){
 	int nombreBlocsRequis; /* Nombre de bloc que l'on va envoyer*/
 	int i; /* indice de parcours de la boucle */
 	char * bloc; /* bloc de donnée 4096 octets de données et 3 octets d'en-tête */
+	char *resultatTelechargement; /* retour client sur le téléchargement : OK ou KO */
+	char *requeteSave; /* Sauvegarde de la requete client pour le test de longueur */
+	char fichierSave[100]; /* Sauvegarde du nom du fichier car il s'efface au cours de l'execution */
+	char *commande; /* commande de l'utilisateur */
 
 	/* On définit la taille d'un bloc à 4096 octets */
 	int tailleBloc = 4096;
@@ -541,62 +545,121 @@ int envoyerFichierBloc(Client *client, char *requete){
 	bloc = (char*) malloc(4099);
 
 	/* A FAIRE : Tous les tests sur la requête */
+	/* On alloue de la memoire a la sauvegarde de la requete */
+	requeteSave = (char*) malloc(100);
 
-	/* On ouvre le fichier en mode binaire */
-	fichier = NULL; /* on met fichier à NULL pour bien pouvoir tester l'ouverture */
-	fichier = fopen(nomFichier,"rb");
-	/* On teste l'ouverture du fichier */
-	if(fichier == NULL){
-		/* Echec de l'ouverture */
-		printf("ERREUR : ouverture du fichier impossible\n");
-		Emission("550 - Impossible d'ouvrir le fichier\n",client);
+	/* On alloue de la memoire pour la variable */
+	resultatTelechargement = (char*) malloc(5);
+
+	/* On sauvegarde la requete */
+	strcpy(requeteSave,requete);
+
+	/* On decompose la requete client pour extraire le nom du fichier et la commande */
+	commande = strtok(requete, " \n");
+	nomFichier = strtok(NULL, " \n");
+
+	/* on sauvegarde le nom du fichier */
+	strcpy(fichierSave,nomFichier);
+
+	/* On verifie que la commande est bien RETR */
+	if(strcmp(commande,"RETR") != 0){
+		/* On envoie l'erreur au client */
+		printf("Requete incorrecte : mauvaise commande\n");
+		Emission("500 - Requete incorrecte\n",client);
 		return 0;
 	}else{
-		/* Ouverture OK */
-		/* On recupere la taille du fichier */
-		fseek (fichier , 0 , SEEK_END);
-		tailleFichier = ftell (fichier);
-		rewind (fichier);
-		/* On alloue de la memoire pour le contenu du fichier */
-		contenuFichier = (char*) malloc(tailleFichier);
-		/* On récupère le contenu du fichier */
-		if(fread(contenuFichier,1,tailleFichier,fichier)<1){
-			/* Erreur lecture fichier */
-			printf("ERREUR : lecture du fichier echouee\n");
-			/* on ferme le fichier */
-			fclose(fichier);
-			Emission("550 - Impossible de lire le fichier\n",client);
+		/* On teste que le chemin du fichier pas vide */
+		if(nomFichier == NULL || strcmp(nomFichier,"") == 0){
+			/* Erreur pas de chemin pour le fichier */
+			printf("ERREUR : Le chemin du fichier est vide\n");
+			Emission("501 - Chemin du fichier NULL ou vide\n",client);
 			return 0;
 		}else{
-			/* On ferme le fichier */
-			fclose(fichier);
-			/* On va maintenant calculer le nombre de blocs à envoyer */
-			nombreBlocsRequis = tailleFichier / tailleBloc; /* On divise la taille du fichier par la longueur d'un bloc */
-			/* On regarde si il faut rajouter un bloc en plus pour les octets manquants */
-			if(tailleFichier % tailleBloc != 0){
-				/* On rajoute un bloc de plus pour la fin du fichier */
-				nombreBlocsRequis++;
-			}
-			/* On fait un boucle sur le nombre de bloc requis et on envoit les blocs les uns à la suite des autres */
-			for(i=0;i<nombreBlocsRequis;i++){
-				printf("Emission du bloc %d\n",i);
-				/* on vide les variables */
-				memset(bloc,0,sizeof(bloc));
-				/* On prépare l'entête */
-				if(i != (nombreBlocsRequis-1)){
-					/* si on est pas sur le dernier bloc */
-					strcpy(bloc,"000000000000000000004096");
+			/* On teste maintenant la longueur de la requete */
+			/* On va donc comparer la requete sauvegardee a une requete que l'on monte pour le test */
+			sprintf(requete,"RETR %s\n",nomFichier);
+			if(strlen(requeteSave) != strlen(requete)){
+				/* requete incorrecte */
+				printf("Requete incorrecte : probleme de longueur\n");
+				Emission("500 - Requete incorrecte\n",client);
+				return 0;
+			}else{
+				/* On récupère le nom du fichier de la sauvegarde */
+				strcpy(nomFichier,fichierSave);
+				/* On ouvre le fichier en mode binaire */
+				fichier = NULL; /* on met fichier à NULL pour bien pouvoir tester l'ouverture */
+				fichier = fopen(nomFichier,"rb");
+				/* On teste l'ouverture du fichier */
+				if(fichier == NULL){
+					/* Echec de l'ouverture */
+					printf("ERREUR : ouverture du fichier impossible\n");
+					Emission("550 - Impossible d'ouvrir le fichier\n",client);
+					return 0;
 				}else{
-					/* Si on est sur le dernier bloc */
-					strcpy(bloc,"000000640000000000004096");
+					/* Ouverture OK */
+					/* On recupere la taille du fichier */
+					fseek (fichier , 0 , SEEK_END);
+					tailleFichier = ftell (fichier);
+					rewind (fichier);
+					/* On alloue de la memoire pour le contenu du fichier */
+					contenuFichier = (char*) malloc(tailleFichier);
+					/* On récupère le contenu du fichier */
+					if(fread(contenuFichier,1,tailleFichier,fichier)<1){
+						/* Erreur lecture fichier */
+						printf("ERREUR : lecture du fichier echouee\n");
+						/* on ferme le fichier */
+						fclose(fichier);
+						Emission("550 - Impossible de lire le fichier\n",client);
+						return 0;
+					}else{
+						/* On ferme le fichier */
+						fclose(fichier);
+						/* On informe le client que le téléchargement va commencer */
+						Emission("150 - Debut du telechargement\n",client);
+						/* On va maintenant calculer le nombre de blocs à envoyer */
+						nombreBlocsRequis = tailleFichier / tailleBloc; /* On divise la taille du fichier par la longueur d'un bloc */
+						/* On regarde si il faut rajouter un bloc en plus pour les octets manquants */
+						if(tailleFichier % tailleBloc != 0){
+							/* On rajoute un bloc de plus pour la fin du fichier */
+							nombreBlocsRequis++;
+						}
+						/* On fait un boucle sur le nombre de bloc requis et on envoit les blocs les uns à la suite des autres */
+						for(i=0;i<nombreBlocsRequis;i++){
+							printf("Emission du bloc %d\n",i);
+							/* on vide les variables */
+							memset(bloc,0,sizeof(bloc));
+							/* On prépare l'entête */
+							if(i != (nombreBlocsRequis-1)){
+								/* si on est pas sur le dernier bloc */
+								strcpy(bloc,"000000000000000000004096");
+							}else{
+								/* Si on est sur le dernier bloc */
+								strcpy(bloc,"000000640000000000004096");
+							}
+							/* On prépare le bloc i */
+							strcat(extraireSousChaine(contenuFichier,4096,(i*4096)),bloc);
+							/* On envoi le bloc numéro i */
+							Emission(bloc,client);
+						}
+						/* Fin envoi des blocs */
+						printf("Tous les blocs ont été envoyés\n");
+
+						/* On attend maintenant la réponse du client pour voir si le téléchargement s'est bien passé */
+						resultatTelechargement = Reception(client);
+						/* On regarde si la réponse contient OK ou pas */
+						if(strstr(resultatTelechargement,"OK") != NULL){
+							/* le retour client contient bien OK */
+							printf("Telechargement OK\n");
+							Emission("226 - Telechargement termine\n",client);
+						}else{
+							printf("Telchargement KO\n");
+							Emission("451 - Telechargement echoue\n",client);
+						}
+						/* On quitte la fonction avec le code retour 1 */
+						return 1;
+					}
 				}
-				/* On prépare le bloc i */
-				strcat(extraireSousChaine(contenuFichier,4096,(i*4096)),bloc);
-				/* On envoi le bloc numéro i */
-				Emission(bloc,client);
 			}
-			/* Fin envoi des blocs */
-			printf("Tous les blocs ont été envoyés\n");
 		}
 	}
 }
