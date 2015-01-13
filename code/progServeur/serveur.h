@@ -70,4 +70,7 @@ int envoyerFichier(Client *client, char *requete);
 /* Envoi en mode bloc, retourne 1 si ok et 0 sinon */
 int envoyerFichierBloc(Client *client, char *requete);
 
+/* Change le mode de transfert des fichier, retourne NULL si KO ou le codeMode si OK */
+char changerMode(char *requete, Client *client);
+
 #endif

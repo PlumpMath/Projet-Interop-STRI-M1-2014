@@ -10,6 +10,7 @@ int main(int argc, char *argv[]) {
 	Client *client; /* Client connecte sur le serveur */
 	int termine; /* variable qui permet de savoir si un client souhaite terminer sa session */
 	char *requete; /* Requete du client */
+	char modeTransfert; /* Mode de transfert des fichiers : S (flux) , B (bloc) */
 
 	/* On initialise le serveur */
 	InitialisationAvecService(argv[1]);
@@ -19,6 +20,8 @@ int main(int argc, char *argv[]) {
 		/* On recupere le client qui s'est connecte au serveur */
 		client = AttenteClient();
 		if(connecterClient(client) == 1){
+			/* Par défaut le mode de transfert est le mode flux */
+			modeTransfert = 'S';
 			/* On va realiser le traitement du client */
 			do{
 				termine = FALSE; /* On met termine a 0 (faux) */
@@ -50,10 +53,16 @@ int main(int argc, char *argv[]) {
 								printf("Fin de session client\n");
 								Emission("530 - Fin de connexion\n",client);
 							}else{
-								/* Requete inconnue */
-								printf("ERREUR : requete inconnue\n");
-								Emission("500 - Commande non reconnue\n",client);
-								termine = TRUE;
+								if(requete[0] == 'M'){
+									/* Changement du mode de transfert */
+									printf("Changement de mode\n");
+									
+								}else{
+									/* Requete inconnue */
+									printf("ERREUR : requete inconnue\n");
+									Emission("500 - Commande non reconnue\n",client);
+									termine = TRUE;
+								}
 							}
 						}
 					}

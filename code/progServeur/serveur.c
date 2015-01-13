@@ -663,3 +663,30 @@ int envoyerFichierBloc(Client *client, char *requete){
 		}
 	}
 }
+
+/* Change le mode de transfert des fichier, retourne NULL si KO ou le codeMode si OK */
+char changerMode(char *requete, Client *client){
+	char mode; /* code pour le mode demandé */
+	/* On récupère dans la requete le caractère correspondant au mode, si la requete est bien formée s'est le 6ème caractère, S = flux et B = bloc */
+	mode = requete[5];
+	/* On teste que le mode demandé est bien correct */
+	if(mode == 'B' || mode == 'S'){
+		/* Le mode est correct on teste maintenant la longueur de la requete, typiquement MODE CODE\n => 7 caractères */
+		if(strlen(requete) == 7){
+			/* Requete correcte, on teste maintenant la commande */
+			if(strcmp(extraireSousChaine(requete, 5, 1),"MODE ") == 0){
+				/* La commande est correcte on retourne le nouveau mode */
+				return mode;
+			}else{
+				/* Erreur commande incorrecte */
+				return NULL;
+			}
+		}else{
+			/* Longueur de requete incorrecte */
+			return NULL;
+		}
+	}else{
+		/* Mode incorrect */
+		return NULL;
+	}
+}
