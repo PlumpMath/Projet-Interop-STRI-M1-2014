@@ -291,3 +291,14 @@ void telechargerFichier(char *nomFichier){
 		}
 	}
 }
+
+/* Envoi au serveur une demande de changement du mode de telechargement des fichiers */
+void changerMode(char mode){
+	char requete[7]; /* Requete que l'on va envoyer au serveur */
+	/* On prépare la requete */
+	sprintf(requete,"MODE %c\n",mode);
+	/* On envoi la requete au serveur */
+	Emission(requete);
+	/* On affiche la réponse du serveur */
+	printf(Reception());
+}

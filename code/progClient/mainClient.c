@@ -14,6 +14,7 @@ int main(int argc, char *argv[]) {
 	char nomFichier[100]; /* Nom du fichier */
 	int c; /* permet de vider le buffer */
 	int termine; /* permet de savoir si un client a termine ses traitements */
+	int choixModeTransfert; /* Mode de transfert du fichier */
 
 	etatConnexion = 0;
 
@@ -35,6 +36,7 @@ int main(int argc, char *argv[]) {
 			printf("-MENU PRINCIPAL-\n\n");
 			printf("1 : Envoyer un fichier sur le serveur\n");
 			printf("2 : Telecharger un fichier stocke sur le serveur\n");
+			printf("3 : Modifier le mode de telechargement des fichiers (bloc / flux)\n");
 			printf("0 : Se déconnecter\n\n");
 			printf("Votre choix : ");
 			/* On recupere le choix de l'utilisateur */
@@ -69,6 +71,37 @@ int main(int argc, char *argv[]) {
 							/* On lance la procedure d'envoi */
 							telechargerFichier(nomFichier);
 						}
+						break;
+					case 3:
+						/* Modification du mode de transfert */
+						do{
+							printf("Quel mode de transfert voulez-vous choisir :\n");
+							printf("1 : Mode bloc\n");
+							printf("2 : Mode flux\n");
+							printf("0 : Retour\n");
+							printf("Votre choix : ");
+							if(scanf("%d",&choixModeTransfert) < 1){
+								/* Erreur saisie */
+								printf("ERREUR : votre saisie est incorrecte \n\n");
+								while ( ((c = getchar()) != '\n') && c != EOF); /* on vide le buffer */
+							}else{
+								while ( ((c = getchar()) != '\n') && c != EOF);
+								/* On teste que l'utiliateur est bien saisi 1 ou 2 ou 0 */
+								switch (choixModeTransfert){
+									case 1: /* Passage en mode bloc */
+										changerMode('B');
+										choixModeTransfert = 0;
+										break;
+									case 2: /* Passage en mode flux */
+										changerMode('S');
+										choixModeTransfert = 0;
+										break;
+									default:
+										/* Erreur saisie */
+										printf("Votre choix est incorrect\n");
+								}
+							}
+						}while(choixModeTransfert != 0);
 						break;
 					case 0:
 						/* Quitter l'application */

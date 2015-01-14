@@ -676,17 +676,21 @@ char changerMode(char *requete, Client *client){
 			/* Requete correcte, on teste maintenant la commande */
 			if(strcmp(extraireSousChaine(requete, 5, 1),"MODE ") == 0){
 				/* La commande est correcte on retourne le nouveau mode */
+				Emission("200 - Changement de mode de transfert termine\n",client);
 				return mode;
 			}else{
 				/* Erreur commande incorrecte */
+				Emission("500 - Commande inconnue\n",client);
 				return NULL;
 			}
 		}else{
 			/* Longueur de requete incorrecte */
+			Emission("500 - Erreur de syntaxe dans la requete, longueur incorrecte\n",client);
 			return NULL;
 		}
 	}else{
 		/* Mode incorrect */
+		Emission("501 - Le mode demande est incorrect\n",client);
 		return NULL;
 	}
 }

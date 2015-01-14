@@ -56,7 +56,7 @@ int main(int argc, char *argv[]) {
 								if(requete[0] == 'M'){
 									/* Changement du mode de transfert */
 									printf("Changement de mode\n");
-									
+									modeTransfert = changerMode(requete,client);
 								}else{
 									/* Requete inconnue */
 									printf("ERREUR : requete inconnue\n");
