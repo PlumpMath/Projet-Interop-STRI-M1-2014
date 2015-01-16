@@ -51,4 +51,10 @@ void envoyerFichier(char *nomFichier);
 /* Telecharge un fichier depuis le serveur */
 void telechargerFichier(char *nomFichier);
 
+/* Telecharge un fichier depuis le serveur */
+int telechargerFichierBloc(char *nomFichier);
+
+/* Envoi au serveur une demande de changement du mode de telechargement des fichiers */
+void changerMode(char mode);
+
 #endif

@@ -14,9 +14,10 @@ int main(int argc, char *argv[]) {
 	char nomFichier[100]; /* Nom du fichier */
 	int c; /* permet de vider le buffer */
 	int termine; /* permet de savoir si un client a termine ses traitements */
-	int choixModeTransfert; /* Mode de transfert du fichier */
+	int choixModeTransfert; /* Mode de transfert du fichier, 0 = bloc / 1 = flux */
 
 	etatConnexion = 0;
+	choixModeTransfert = 1; /* Mode flux par défaut */
 
 	/* On initialise le client */
 	if(InitialisationAvecService(argv[1],argv[2]) == 0){
@@ -68,8 +69,13 @@ int main(int argc, char *argv[]) {
 						fflush(stdin); /* on vide le buffer */
 						/* On verifie qu'on a bien lu quelque chose */
 						if(nomFichier != NULL){
-							/* On lance la procedure d'envoi */
-							telechargerFichier(nomFichier);
+							/* En fonction du mode on apelle la fonction qui correspond */
+							if(choixModeTransfert == 0){
+								telechargerFichierBloc(nomFichier);
+							}else{
+								/* On lance la procedure d'envoi */
+								telechargerFichier(nomFichier);
+							}
 						}
 						break;
 					case 3:
@@ -94,7 +100,7 @@ int main(int argc, char *argv[]) {
 										break;
 									case 2: /* Passage en mode flux */
 										changerMode('S');
-										choixModeTransfert = 0;
+										choixModeTransfert = 1;
 										break;
 									default:
 										/* Erreur saisie */
