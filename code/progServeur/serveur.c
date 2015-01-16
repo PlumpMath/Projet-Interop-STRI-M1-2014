@@ -538,11 +538,11 @@ int envoyerFichierBloc(Client *client, char *requete){
 	char fichierSave[100]; /* Sauvegarde du nom du fichier car il s'efface au cours de l'execution */
 	char *commande; /* commande de l'utilisateur */
 
-	/* On définit la taille d'un bloc à 4096 octets */
-	int tailleBloc = 4096;
+	/* On définit la taille d'un bloc à 8191 octets */
+	int tailleBloc = 8191;
 
-	/* On alloue de la mémoire pour le bloc, 4096 pour les données + 3 pour les en-têtes */
-	bloc = (char*) malloc(4099);
+	/* On alloue de la mémoire pour le bloc, 8191 pour les données + 3 pour les en-têtes */
+	bloc = (char*) malloc(tailleBloc+3);
 
 	/* A FAIRE : Tous les tests sur la requête */
 	/* On alloue de la memoire a la sauvegarde de la requete */
@@ -619,7 +619,8 @@ int envoyerFichierBloc(Client *client, char *requete){
 						/* On va maintenant calculer le nombre de blocs à envoyer */
 						nombreBlocsRequis = tailleFichier / tailleBloc; /* On divise la taille du fichier par la longueur d'un bloc */
 						/* On regarde si il faut rajouter un bloc en plus pour les octets manquants */
-						if(tailleFichier % tailleBloc != 0){
+						double tailleDernierBloc = tailleFichier % tailleBloc;
+						if(tailleDernierBloc != 0){
 							/* On rajoute un bloc de plus pour la fin du fichier */
 							nombreBlocsRequis++;
 						}
@@ -629,18 +630,24 @@ int envoyerFichierBloc(Client *client, char *requete){
 							/* on vide les variables */
 							memset(bloc,0,sizeof(bloc));
 							/* On prépare l'entête */
-							if(i != (nombreBlocsRequis-1)){
-								/* si on est pas sur le dernier bloc */
-								strcpy(bloc,"000000000000000000004096");
+							if(i == (nombreBlocsRequis-1) && tailleDernierBloc != 0){
+								/* On est dans le dernier bloc donc il n'a pas forcément la même taille */
+								sprintf(bloc,"00000000000000000000%04d",tailleDernierBloc);
+								/* On prépare le bloc i */
+								strcat(extraireSousChaine(contenuFichier,tailleDernierBloc,(i*tailleBloc)),bloc);
 							}else{
-								/* Si on est sur le dernier bloc */
-								strcpy(bloc,"000000640000000000004096");
+								/* si on est pas sur le dernier bloc */
+								strcpy(bloc,"000000000000000000008191");
+								/* On prépare le bloc i */
+								strcat(extraireSousChaine(contenuFichier,tailleBloc,(i*tailleBloc)),bloc);
 							}
-							/* On prépare le bloc i */
-							strcat(extraireSousChaine(contenuFichier,4096,(i*4096)),bloc);
 							/* On envoi le bloc numéro i */
-							Emission(bloc,client);
+							Emission(bloc,client);		
 						}
+						/* On envoi le message de fin d'envoi */
+						memset(bloc,0,sizeof(bloc));
+						strcpy(bloc,"000000640000000000000000");
+						Emission(bloc,client);
 						/* Fin envoi des blocs */
 						printf("Tous les blocs ont été envoyés\n");
 
@@ -673,8 +680,9 @@ char changerMode(char *requete, Client *client){
 	if(mode == 'B' || mode == 'S'){
 		/* Le mode est correct on teste maintenant la longueur de la requete, typiquement MODE CODE\n => 7 caractères */
 		if(strlen(requete) == 7){
+			printf("%s\n",extraireSousChaine(requete, 5, 0));
 			/* Requete correcte, on teste maintenant la commande */
-			if(strcmp(extraireSousChaine(requete, 5, 1),"MODE ") == 0){
+			if(strcmp(extraireSousChaine(requete, 5, 0),"MODE ") == 0){
 				/* La commande est correcte on retourne le nouveau mode */
 				Emission("200 - Changement de mode de transfert termine\n",client);
 				return mode;

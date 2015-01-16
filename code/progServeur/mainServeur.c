@@ -43,8 +43,13 @@ int main(int argc, char *argv[]) {
 						if(requete[0] == 'R'){
 							/* Demande de telechargement d'un fichier */
 							printf("Demande de telechargement de fichier\n");
-							if(envoyerFichier(client,requete) == 1){
-								Emission("226 - Telechargement termine\n",client);
+							/* on teste le mode de transfert en cour */
+							if(modeTransfert == 'B'){
+								/* Mode bloc */
+								envoyerFichierBloc(client, requete);
+							}else{
+								/* Mode flux */
+								envoyerFichier(client,requete);
 							}
 						}else{
 							if(requete[0] == 'Q'){
