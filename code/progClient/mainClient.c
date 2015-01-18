@@ -38,6 +38,7 @@ int main(int argc, char *argv[]) {
 			printf("1 : Envoyer un fichier sur le serveur\n");
 			printf("2 : Telecharger un fichier stocke sur le serveur\n");
 			printf("3 : Modifier le mode de telechargement des fichiers (bloc / flux)\n");
+			printf("4 : Reprendre un telechargement en cours (suite a une erreur)\n");
 			printf("0 : Se déconnecter\n\n");
 			printf("Votre choix : ");
 			/* On recupere le choix de l'utilisateur */
@@ -107,7 +108,20 @@ int main(int argc, char *argv[]) {
 										printf("Votre choix est incorrect\n");
 								}
 							}
-						}while(choixModeTransfert != 0);
+						}while(choixModeTransfert != 0 && choixModeTransfert != 1);
+						break;
+					case 4:
+						printf("Saisir le nom du fichier que vous voulez reprendre : \n");
+						/* On va lire le nom du fichier au clavier */
+						fgets(nomFichier,100,stdin);
+						fflush(stdin); /* on vide le buffer */
+						/* On verifie qu'on a bien lu quelque chose */
+						if(nomFichier != NULL){
+							/* On passe en mode bloc */
+							choixModeTransfert = 0;
+							/* On reprend le transfert */
+							repriseTelechargement(nomFichier);
+						}
 						break;
 					case 0:
 						/* Quitter l'application */

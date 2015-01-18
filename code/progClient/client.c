@@ -297,20 +297,20 @@ int telechargerFichierBloc(char *nomFichier){
 	FILE * fichier = NULL; /* Fichier que l'on veut creer */
 	char *reponseServeur; /* Reponse du serveur */
 	char requete[100]; /* requete qu'on envoie au serveur */
-	char descripteurBloc[8]; /* Champ descripteur de l'en-tête du bloc */
 	char *bloc; /* Bloc de fichier reçu du serveur, taille max des données + 3 octets d'en-tête */
-	int termine; /* Variable qui permet de savoir si on doit sortir de la boucle */
+	char *donneesBloc; /* Donnees contenues dans le bloc */
+	char descripteurBloc[3]; /* champ descripteur de l'en-tête*/
+	char tailleBloc[4]; /* champ taille de l'en-tête */
+	int i; /* indice de parcours */
 
 	/* On supprime le \n a la fin du nomFichier */
 	nomFichier[strlen(nomFichier)-1] = NULL;
-
-	/* On alloue de la mémoire au bloc */
-	bloc = (char*) malloc(8191);
 
 	/* On verifie que le nom du fichier est non null ou vide */
 	if(nomFichier == NULL || strcmp(nomFichier,"") == 0){
 		/* Fichier null ou vide */
 		printf("ERREUR : le nom du fichier est vide\n");
+		return 0;
 	}else{
 		/* On prepare la requete pour le serveur */
 		sprintf(requete,"RETR %s\n",nomFichier);
@@ -328,65 +328,48 @@ int telechargerFichierBloc(char *nomFichier){
 				/* probleme ouverture */
 				printf("ERREUR : ouverture du fichier echouee\n");
 				/* On informe le serveur du probleme */
-				Emission("KO");
+				Emission("KO\n");
 				/* On sort de la fonction en echec */
 				return 0;
 			}else{
-				termine = 0; /* On initialise termine à 0 (faux) */
-				/* On va maintenant boucler tant que le descripteur n'est pas 64 (fin d'envoi) */
+				/* On va récupérer les blocs les uns après les autres jusqu'à recevoir un descripteur = 64 */
 				do{
-					/* On vide la variable bloc */
-					memset(bloc,0,sizeof(bloc));
-					/* On récupère le bloc */
 					bloc = Reception();
-					/* On teste que le bloc n'est pas null et qu'il possède bien les en-têtes */
-					if(bloc != NULL || strlen(bloc) < 24){
-						/* Erreur avec la réception du bloc */
-						printf("ERREUR : bloc reçu incorrect\n");
-						/* On informe le serveur du probleme */
-						Emission("KO");
-						/* On quitte la boucle */
-						termine = 1;
-						/* On ferme le fichier */
-						fclose(fichier);
-						/* On sort de la fonction en echec */
-						return 0;
-					}else{
-						/* On vide le descripteur */
-						memset(descripteurBloc,0,sizeof(descripteurBloc));
-						/* on recupère le descripteur du bloc */
-						int i; /* indice de parcours pour la boucle */
-						for(i=0;i<8;i++){
-							descripteurBloc[i] = bloc[i];
+					//printf("Bloc : %s",bloc);
+					/* On va dans un premier temps extraire les différents champs d'en-tête du bloc */
+					sprintf(descripteurBloc,"%c%c%c",bloc[0],bloc[1],bloc[2]);
+					sprintf(tailleBloc,"%c%c%c%c",bloc[3],bloc[4],bloc[5],bloc[6]);
+					/* On regarde si le descripteur est 0 */
+					if(atoi(descripteurBloc) == 0){
+						/* On récupère les données */
+						donneesBloc = (char*) malloc(atoi(tailleBloc));
+						for(i=7;i<strlen(bloc)-1;i++){
+							donneesBloc[i-7] = bloc[i];
 						}
-						/* Si le descripteur n'est pas 64 on écrit le bloc dans le fichier */
-						if(atoi(descripteurBloc) != 64){
-							/* On ecrit le contenu du bloc telecharge dans le fichier local */
-							if(fwrite(bloc,strlen(bloc),1,fichier) < 1){
-						    	/* Erreur ecriture du fichier */
-						    	/* On quitte la boucle */
-								termine = 1;
-						    	/* On ferme le fichier */
-								fclose(fichier);
-								/* On informe le serveur du probleme */
-								Emission("KO");
-						        printf("ERREUR : ecriture du bloc echouee\n");
-						        /* On sort de la fonction en echec */
-								return 0;
-						    }
+						/* On va ecrire les donnees dans le fichier */
+						if(fwrite(donneesBloc,atoi(tailleBloc),1,fichier) < 1){
+							/* Erreur ecriture du fichier */
+					        printf("ERREUR : ecriture du contenu du fichier echouee\n");
+					        /* On informe le serveur que le fichier est bien cree */
+					    	Emission("KO\n");
+					    	/* On ferme le fichier */
+					    	fclose(fichier);
+					    	return 0;
 						}else{
-							/* On a reçu le bloc de fin */
-							termine = 1;
-							/* On ferme le fichier */
-							fclose(fichier);
+							/* On informe le serveur que on a bien reçu le bloc */
+							Emission("OK\n");
 						}
+						/* On libere l'espace alloué aux données */
+						memset(donneesBloc,0,sizeof(donneesBloc));
+						free(donneesBloc);
 					}
-				}while(termine != 1);
+				}while(atoi(descripteurBloc) != 64);
 
-				/* On informe le serveur que on a bien termine le telechargement */
-				Emission("OK");
-				/* On affiche le message retour du serveur */
-				printf("%s\n");
+				/* on ferme le fichier et on informe le serveur que c'est OK */
+				fclose(fichier);
+				Emission("OK\n");
+				/* On affiche le message du serveur */
+				printf("%s\n",Reception());
 				return 1;
 			}
 		}
@@ -402,4 +385,100 @@ void changerMode(char mode){
 	Emission(requete);
 	/* On affiche la réponse du serveur */
 	printf(Reception());
+}
+
+/* Permet de reprendre un téléchargement en cours en cas d'erreur */
+int repriseTelechargement(char *nomFichier){
+	FILE *fichier; /* fichier que l'on veut reprendre */
+	long taille; /* taille actuelle du fichier */
+	char *reponseServeur; /* Reponse du serveur */
+	char requete[100]; /* requete qu'on envoie au serveur */
+	char *bloc; /* Bloc de fichier reçu du serveur, taille max des données + 3 octets d'en-tête */
+	char *donneesBloc; /* Donnees contenues dans le bloc */
+	char descripteurBloc[3]; /* champ descripteur de l'en-tête*/
+	char tailleBloc[4]; /* champ taille de l'en-tête */
+	int i; /* indice de parcours */
+
+	/* On supprime le \n a la fin du nomFichier */
+	nomFichier[strlen(nomFichier)-1] = NULL;
+
+	/* On verifie que le nom du fichier est non null ou vide */
+	if(nomFichier == NULL || strcmp(nomFichier,"") == 0){
+		/* Fichier null ou vide */
+		printf("ERREUR : le nom du fichier est vide\n");
+		return 0;
+	}else{
+		/* On ouvre le fichier en mode ajout */
+		fichier = fopen(nomFichier,"ab");
+		if(fichier == NULL){
+			/* probleme ouverture */
+			printf("ERREUR : ouverture du fichier echouee\n");
+			/* On informe le serveur du probleme */
+			Emission("KO\n");
+			/* On sort de la fonction en echec */
+			return 0;
+		}else{
+			/* On recupere la taille du fichier */
+			fseek (fichier , 0 , SEEK_END);
+			taille = ftell (fichier);
+			rewind (fichier);
+
+			/* On prépare la requete pour le serveur */
+			sprintf(requete,"REST %d\n",taille);
+			/* On envoi la requête au serveur */
+			Emission(requete);
+			/* On récupère la reponse serveur et on regarde si elle contient 150 */
+			reponseServeur = Reception();
+			printf("%s",reponseServeur);
+			if(strstr(reponseServeur,"150") != NULL){
+				/* On va maintenant réaliser la même fonction que pour le mode bloc */
+				/* On va récupérer les blocs les uns après les autres jusqu'à recevoir un descripteur = 64 */
+				do{
+					bloc = Reception();
+					//printf("Bloc : %s",bloc);
+					/* On va dans un premier temps extraire les différents champs d'en-tête du bloc */
+					sprintf(descripteurBloc,"%c%c%c",bloc[0],bloc[1],bloc[2]);
+					sprintf(tailleBloc,"%c%c%c%c",bloc[3],bloc[4],bloc[5],bloc[6]);
+					/* On regarde si le descripteur est 0 */
+					if(atoi(descripteurBloc) == 0 || atoi(descripteurBloc) == 16){
+						if(atoi(descripteurBloc) == 16){
+							printf("Debut de la reprise\n");
+						}
+						/* On récupère les données */
+						donneesBloc = (char*) malloc(atoi(tailleBloc));
+						for(i=7;i<strlen(bloc)-1;i++){
+							donneesBloc[i-7] = bloc[i];
+						}
+						/* On va ecrire les donnees dans le fichier */
+						if(fwrite(donneesBloc,atoi(tailleBloc),1,fichier) < 1){
+							/* Erreur ecriture du fichier */
+					        printf("ERREUR : ecriture du contenu du fichier echouee\n");
+					        /* On informe le serveur que le fichier est bien cree */
+					    	Emission("KO\n");
+					    	/* On ferme le fichier */
+					    	fclose(fichier);
+					    	return 0;
+						}else{
+							/* On informe le serveur que on a bien reçu le bloc */
+							Emission("OK\n");
+						}
+						/* On libere l'espace alloué aux données */
+						memset(donneesBloc,0,sizeof(donneesBloc));
+						free(donneesBloc);
+					}
+				}while(atoi(descripteurBloc) != 64);
+
+				/* on ferme le fichier et on informe le serveur que c'est OK */
+				fclose(fichier);
+				Emission("OK\n");
+				/* On affiche le message du serveur */
+				printf("%s\n",Reception());
+				return 1;
+			}
+		}
+
+		
+	}
+
+	
 }

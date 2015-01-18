@@ -57,4 +57,7 @@ int telechargerFichierBloc(char *nomFichier);
 /* Envoi au serveur une demande de changement du mode de telechargement des fichiers */
 void changerMode(char mode);
 
+/* Permet de reprendre un téléchargement en cours en cas d'erreur */
+int repriseTelechargement(char *nomFichier);
+
 #endif

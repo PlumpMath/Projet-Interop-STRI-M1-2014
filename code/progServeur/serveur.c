@@ -530,21 +530,22 @@ int envoyerFichierBloc(Client *client, char *requete){
 	char *contenuFichier; /* Contenu du fichier que l'on veut envoyer */
 	FILE * fichier; /* Fichier que l'on veut envoyer */
 	char *nomFichier; /* Chemin du fichier que l'on veut envoyer */
-	int nombreBlocsRequis; /* Nombre de bloc que l'on va envoyer*/
-	int i; /* indice de parcours de la boucle */
-	char * bloc; /* bloc de donnée 4096 octets de données et 3 octets d'en-tête */
 	char *resultatTelechargement; /* retour client sur le téléchargement : OK ou KO */
 	char *requeteSave; /* Sauvegarde de la requete client pour le test de longueur */
 	char fichierSave[100]; /* Sauvegarde du nom du fichier car il s'efface au cours de l'execution */
 	char *commande; /* commande de l'utilisateur */
+	char caractereCourrant; /* caractère lu dans le fichier */
+	int compteur; /* compteur de caractère */
+	char entete[7]; /* en-tête du bloc */
+	char donnees[8191]; /* donnees du bloc */
+	char bloc[8199]; /* bloc envoyé au client */
+	char *retourClient; /* réponse du client après envoie d'un bloc */
+	char *tailleDejaRecue; /* Départ de la reprise */
+	int reprise = 0; /* 1 : reprise en cours / 0 : sinon */
 
 	/* On définit la taille d'un bloc à 8191 octets */
-	int tailleBloc = 8191;
+	long tailleBloc = 8191;
 
-	/* On alloue de la mémoire pour le bloc, 8191 pour les données + 3 pour les en-têtes */
-	bloc = (char*) malloc(tailleBloc+3);
-
-	/* A FAIRE : Tous les tests sur la requête */
 	/* On alloue de la memoire a la sauvegarde de la requete */
 	requeteSave = (char*) malloc(100);
 
@@ -596,75 +597,100 @@ int envoyerFichierBloc(Client *client, char *requete){
 					Emission("550 - Impossible d'ouvrir le fichier\n",client);
 					return 0;
 				}else{
-					/* Ouverture OK */
-					/* On recupere la taille du fichier */
-					fseek (fichier , 0 , SEEK_END);
-					tailleFichier = ftell (fichier);
-					rewind (fichier);
-					/* On alloue de la memoire pour le contenu du fichier */
-					contenuFichier = (char*) malloc(tailleFichier);
-					/* On récupère le contenu du fichier */
-					if(fread(contenuFichier,1,tailleFichier,fichier)<1){
-						/* Erreur lecture fichier */
-						printf("ERREUR : lecture du fichier echouee\n");
-						/* on ferme le fichier */
-						fclose(fichier);
-						Emission("550 - Impossible de lire le fichier\n",client);
-						return 0;
-					}else{
-						/* On ferme le fichier */
-						fclose(fichier);
-						/* On informe le client que le téléchargement va commencer */
-						Emission("150 - Debut du telechargement\n",client);
-						/* On va maintenant calculer le nombre de blocs à envoyer */
-						nombreBlocsRequis = tailleFichier / tailleBloc; /* On divise la taille du fichier par la longueur d'un bloc */
-						/* On regarde si il faut rajouter un bloc en plus pour les octets manquants */
-						double tailleDernierBloc = tailleFichier % tailleBloc;
-						if(tailleDernierBloc != 0){
-							/* On rajoute un bloc de plus pour la fin du fichier */
-							nombreBlocsRequis++;
-						}
-						/* On fait un boucle sur le nombre de bloc requis et on envoit les blocs les uns à la suite des autres */
-						for(i=0;i<nombreBlocsRequis;i++){
-							printf("Emission du bloc %d\n",i);
-							/* on vide les variables */
-							memset(bloc,0,sizeof(bloc));
-							/* On prépare l'entête */
-							if(i == (nombreBlocsRequis-1) && tailleDernierBloc != 0){
-								/* On est dans le dernier bloc donc il n'a pas forcément la même taille */
-								sprintf(bloc,"00000000000000000000%04d",tailleDernierBloc);
-								/* On prépare le bloc i */
-								strcat(extraireSousChaine(contenuFichier,tailleDernierBloc,(i*tailleBloc)),bloc);
+					/* On informe le client que le téléchargement va commencer */
+					Emission("150 - Debut du telechargement\n",client);
+					/* On positionne le compteur de caractère à 0 */
+					compteur = 0;
+					/* On va lire le fichier caractère par caractère */
+					do{
+						/* On récupère le premier caractère */
+						caractereCourrant = fgetc(fichier);
+						/* Si on a atteint la fin du fichier, on prépare le bloc et on envoi */
+						if(caractereCourrant == EOF){
+							//printf("%s\n",donnees);
+							if(reprise == 1){
+								sprintf(entete,"016%04d",compteur);
 							}else{
-								/* si on est pas sur le dernier bloc */
-								strcpy(bloc,"000000000000000000008191");
-								/* On prépare le bloc i */
-								strcat(extraireSousChaine(contenuFichier,tailleBloc,(i*tailleBloc)),bloc);
+								sprintf(entete,"000%04d",compteur);
 							}
-							/* On envoi le bloc numéro i */
-							Emission(bloc,client);		
-						}
-						/* On envoi le message de fin d'envoi */
-						memset(bloc,0,sizeof(bloc));
-						strcpy(bloc,"000000640000000000000000");
-						Emission(bloc,client);
-						/* Fin envoi des blocs */
-						printf("Tous les blocs ont été envoyés\n");
-
-						/* On attend maintenant la réponse du client pour voir si le téléchargement s'est bien passé */
-						resultatTelechargement = Reception(client);
-						/* On regarde si la réponse contient OK ou pas */
-						if(strstr(resultatTelechargement,"OK") != NULL){
-							/* le retour client contient bien OK */
-							printf("Telechargement OK\n");
-							Emission("226 - Telechargement termine\n",client);
+							sprintf(bloc,"%s%s\n",entete,donnees);
+							//printf("%s",bloc);
+							Emission(bloc,client);
+							retourClient = Reception(client);
+							reprise = 0;
+							if(strstr(retourClient,"OK") == NULL){
+								/* On regarde si le client demande la reprise */
+								if(strstr(retourClient,"REST") != NULL){
+									/* On récupère la taille déjà recue */
+									tailleDejaRecue = (char*) malloc(strlen(retourClient)-6);
+									int x; /* indice de parcours */
+									for(x=5;x<strlen(x);x++){
+										tailleDejaRecue[x-5] = retourClient[x];
+									}
+									/* On positionne le curseur dans le fichier à l'emplacement de la reprise */
+									fseek(fichier,atoi(tailleDejaRecue),SEEK_SET);
+									reprise = 1;
+								}else{
+									printf("Erreur client\n");
+									return 0;
+								}
+								
+							}
 						}else{
-							printf("Telchargement KO\n");
-							Emission("451 - Telechargement echoue\n",client);
+							/* On ajoute le caractère à la partie données du bloc */
+							donnees[compteur] = caractereCourrant;
+							/* On incrémente le compteur */
+							compteur++;
+							/* Si le compteur atteint la taille du bloc, on prépare le bloc et on envoie le bloc */
+							if(compteur == 8191){
+								if(reprise == 1){
+									sprintf(entete,"0168191");
+								}else{
+									sprintf(entete,"0008191");
+								}
+								sprintf(bloc,"%s%s\n",entete,donnees);
+								Emission(bloc,client);
+								retourClient = Reception(client);
+								reprise = 0;
+								if(strstr(retourClient,"OK") == NULL){
+									/* On regarde si le client demande la reprise */
+									if(strstr(retourClient,"REST") != NULL){
+										/* On récupère la taille déjà recue */
+										tailleDejaRecue = (char*) malloc(strlen(retourClient)-6);
+										int x; /* indice de parcours */
+										for(x=5;x<strlen(x);x++){
+											tailleDejaRecue[x-5] = retourClient[x];
+										}
+										/* On positionne le curseur dans le fichier à l'emplacement de la reprise */
+										fseek(fichier,atoi(tailleDejaRecue),SEEK_SET);
+										reprise = 1;
+									}else{
+										printf("Erreur client\n");
+										return 0;
+									}
+									
+								}
+								/* On remet les variables à 0 */
+								compteur = 0;
+								memset(donnees,0,sizeof(donnees));
+								memset(bloc,0,sizeof(bloc));
+								memset(entete,0,sizeof(entete));
+							}
 						}
-						/* On quitte la fonction avec le code retour 1 */
-						return 1;
+					}while(caractereCourrant != EOF);
+					/* On envoi le bloc de fin de transfert au client */
+					Emission("0640000\n",client);
+					/* On teste le retour client et on envoi le message correspondant */
+					if(strstr(Reception(client),"OK") != NULL){
+						/* le retour client contient bien OK */
+						printf("Telechargement OK\n");
+						Emission("226 - Telechargement termine\n",client);
+					}else{
+						printf("Telchargement KO\n");
+						Emission("451 - Telechargement echoue\n",client);
 					}
+					/* On quitte la fonction avec le code retour 1 */
+					return 1;
 				}
 			}
 		}
