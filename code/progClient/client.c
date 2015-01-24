@@ -12,6 +12,7 @@
 #include <arpa/inet.h>
 #include <errno.h>
 #include <dirent.h>
+#include <pthread.h>
 #ifndef WIN32
     #include <sys/types.h>
 #endif
@@ -20,6 +21,12 @@
 #define TRUE 1
 #define FALSE 0
 #define LONGUEUR_TAMPON 4096
+
+/* Strucutre de donnees pour les thread de telechargement */
+struct donneesThread{
+	char *numPort;
+	char *nomFichier;
+};
 
 /* le socket client */
 int socketClient;
@@ -87,7 +94,7 @@ char *Reception() {
 	}
 
 	/* On retourne le message que l'on a reçu du serveur */
-	return message;
+	return strdup(message);
 }
 
 /* Envoi un message au serveur.
@@ -107,6 +114,32 @@ int Emission(char *message) {
 	}
 	/* Success */
 	return 1;
+}
+
+/* Recoit des donnees envoyees par le serveur.
+ */
+int ReceptionBinaire(char *donnees, size_t tailleMax) {
+	int dejaRecu = 0;
+	int retour = 0;
+	/* si on n'est pas arrive au max
+	 * on essaie de recevoir plus de donnees
+	 */
+	while(dejaRecu < tailleMax) {
+		retour = recv(socketClient, donnees + dejaRecu, tailleMax - dejaRecu, 0);
+		if(retour < 0) {
+			perror("ReceptionBinaire, erreur de recv.");
+			return -1;
+		} else if(retour == 0) {
+			fprintf(stderr, "ReceptionBinaire, le serveur a ferme la connexion.\n");
+			return 0;
+		} else {
+			/*
+			 * on a recu "retour" octets en plus
+			 */
+			dejaRecu += retour;
+		}
+	}
+	return dejaRecu;
 }
 
 
@@ -294,32 +327,32 @@ void telechargerFichier(char *nomFichier){
 
 /* Telecharge un fichier depuis le serveur */
 int telechargerFichierBloc(char *nomFichier){
-	FILE * fichier = NULL; /* Fichier que l'on veut creer */
-	char *reponseServeur; /* Reponse du serveur */
-	char requete[100]; /* requete qu'on envoie au serveur */
-	char *bloc; /* Bloc de fichier reçu du serveur, taille max des données + 3 octets d'en-tête */
-	char *donneesBloc; /* Donnees contenues dans le bloc */
+	FILE * fichier = NULL; /* Fichier que l'on veut créer */
+	char *reponseServeur; /* Réponse du serveur */
+	char requete[100]; /* requête qu'on envoie au serveur */
+	char bloc[65536]; /* Bloc de fichier reçu du serveur, taille max des données + 3 octets d'en-tête */
+	char *donneesBloc; /* Données contenues dans le bloc */
 	char descripteurBloc[3]; /* champ descripteur de l'en-tête*/
 	char tailleBloc[4]; /* champ taille de l'en-tête */
 	int i; /* indice de parcours */
 
-	/* On supprime le \n a la fin du nomFichier */
+	/* On supprime le \n à la fin de nomFichier */
 	nomFichier[strlen(nomFichier)-1] = NULL;
 
-	/* On verifie que le nom du fichier est non null ou vide */
+	/* On vérifie si le nom du fichier est NULL ou vide */
 	if(nomFichier == NULL || strcmp(nomFichier,"") == 0){
 		/* Fichier null ou vide */
 		printf("ERREUR : le nom du fichier est vide\n");
 		return 0;
 	}else{
-		/* On prepare la requete pour le serveur */
+		/* On prépare la requête pour le serveur */
 		sprintf(requete,"RETR %s\n",nomFichier);
 		/* On envoie la requete */
 		Emission(requete);
 		/* On affiche la reponse du serveur */
 		reponseServeur = Reception();
 		printf("%s",reponseServeur);
-		/* Si la reponse est 150 - * on recupere le contenu le contenu */
+		/* Si la reponse est 150 - * on recupere le contenu */
 		if(strstr(reponseServeur,"150") != NULL){
 			/* On ouvre le fichier dans lequel on va écrire */
 			fichier = fopen(nomFichier,"wb");
@@ -334,20 +367,18 @@ int telechargerFichierBloc(char *nomFichier){
 			}else{
 				/* On va récupérer les blocs les uns après les autres jusqu'à recevoir un descripteur = 64 */
 				do{
-					bloc = Reception();
-					//printf("Bloc : %s",bloc);
-					/* On va dans un premier temps extraire les différents champs d'en-tête du bloc */
-					sprintf(descripteurBloc,"%c%c%c",bloc[0],bloc[1],bloc[2]);
-					sprintf(tailleBloc,"%c%c%c%c",bloc[3],bloc[4],bloc[5],bloc[6]);
+					/* On récupère l'entete du bloc */
+					ReceptionBinaire(bloc,3);
+					
 					/* On regarde si le descripteur est 0 */
-					if(atoi(descripteurBloc) == 0){
+					if(bloc[0] == 0){
 						/* On récupère les données */
-						donneesBloc = (char*) malloc(atoi(tailleBloc));
-						for(i=7;i<strlen(bloc)-1;i++){
-							donneesBloc[i-7] = bloc[i];
-						}
+						unsigned short taille;
+						memcpy(&taille,bloc+1,2);
+						taille = ntohs(taille);
+						ReceptionBinaire(bloc,taille);
 						/* On va ecrire les donnees dans le fichier */
-						if(fwrite(donneesBloc,atoi(tailleBloc),1,fichier) < 1){
+						if(fwrite(bloc,taille,1,fichier) < 1){
 							/* Erreur ecriture du fichier */
 					        printf("ERREUR : ecriture du contenu du fichier echouee\n");
 					        /* On informe le serveur que le fichier est bien cree */
@@ -356,14 +387,14 @@ int telechargerFichierBloc(char *nomFichier){
 					    	fclose(fichier);
 					    	return 0;
 						}else{
-							/* On informe le serveur que on a bien reçu le bloc */
+							/* On informe le serveur qu'on a bien reçu le bloc */
 							Emission("OK\n");
 						}
 						/* On libere l'espace alloué aux données */
-						memset(donneesBloc,0,sizeof(donneesBloc));
-						free(donneesBloc);
+						//memset(donneesBloc,0,sizeof(donneesBloc));
+						//free(donneesBloc);
 					}
-				}while(atoi(descripteurBloc) != 64);
+				}while(bloc[0] != 64);
 
 				/* on ferme le fichier et on informe le serveur que c'est OK */
 				fclose(fichier);
@@ -381,15 +412,15 @@ void changerMode(char mode){
 	char requete[7]; /* Requete que l'on va envoyer au serveur */
 	/* On prépare la requete */
 	sprintf(requete,"MODE %c\n",mode);
-	/* On envoi la requete au serveur */
+	/* On envoie la requete au serveur */
 	Emission(requete);
 	/* On affiche la réponse du serveur */
-	printf(Reception());
+	puts(Reception());
 }
 
 /* Permet de reprendre un téléchargement en cours en cas d'erreur */
 int repriseTelechargement(char *nomFichier){
-	FILE *fichier; /* fichier que l'on veut reprendre */
+	FILE *fichier = NULL; /* fichier que l'on veut reprendre */
 	long taille; /* taille actuelle du fichier */
 	char *reponseServeur; /* Reponse du serveur */
 	char requete[100]; /* requete qu'on envoie au serveur */
@@ -424,8 +455,8 @@ int repriseTelechargement(char *nomFichier){
 			rewind (fichier);
 
 			/* On prépare la requete pour le serveur */
-			sprintf(requete,"REST %d\n",taille);
-			/* On envoi la requête au serveur */
+			sprintf(requete,"REST %ld\n",taille);
+			/* On envoie la requête au serveur */
 			Emission(requete);
 			/* On récupère la reponse serveur et on regarde si elle contient 150 */
 			reponseServeur = Reception();
@@ -459,7 +490,7 @@ int repriseTelechargement(char *nomFichier){
 					    	fclose(fichier);
 					    	return 0;
 						}else{
-							/* On informe le serveur que on a bien reçu le bloc */
+							/* On informe le serveur qu'on a bien reçu le bloc */
 							Emission("OK\n");
 						}
 						/* On libere l'espace alloué aux données */
@@ -481,4 +512,8 @@ int repriseTelechargement(char *nomFichier){
 	}
 
 	
+}
+
+void* telechargerFichierBlocThread(void* donnees){
+
 }

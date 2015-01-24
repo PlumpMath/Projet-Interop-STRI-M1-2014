@@ -162,7 +162,7 @@ char *Reception(Client *client) {
 		messageLength = strlen(message); /* On recupere la longueur du message */
 		if(messageLength > 0){
 			/* Si le message contient au moins 1 caractere on le retourne */
-			return message;
+			return strdup(message);
 		}
 	}
 }
@@ -188,6 +188,19 @@ int Emission(char *message, Client *client) {
 	}
 
 	return 1;
+}
+
+/* Envoie des donnes au client en prcisant leur taille.
+ */
+int EmissionBinaire(char *donnees, size_t taille, Client *client) {
+	int retour = 0;
+	retour = send(client->socketService, donnees, taille, 0);
+	if(retour == -1) {
+		perror("Emission, probleme lors du send.");
+		return -1;
+	} else {
+		return retour;
+	}
 }
 
 
@@ -267,7 +280,7 @@ char *extraireSousChaine(char *str, long len, long pos){
 	}
 
 	/* On retourne la sous chaine */
-	return sousChaine;
+	return strdup(sousChaine);
 }
 
 /* Realise la connexion du client en parametre sur le serveur FTP 
@@ -483,7 +496,7 @@ int envoyerFichier(Client *client, char *requete){
 						/* Erreur lecture fichier */
 						printf("ERREUR : lecture du fichier echouee\n");
 						/* on ferme le fichier */
-				    		fclose(fichier);
+				    	fclose(fichier);
 						Emission("550 - Impossible de lire le fichier\n",client);
 						return 0;
 					}else{
@@ -526,31 +539,19 @@ int envoyerFichier(Client *client, char *requete){
 
 /* Envoi en mode bloc, retourne 1 si ok et 0 sinon */
 int envoyerFichierBloc(Client *client, char *requete){
-	long tailleFichier; /* Taille du fichier en octet */
-	char *contenuFichier; /* Contenu du fichier que l'on veut envoyer */
 	FILE * fichier; /* Fichier que l'on veut envoyer */
 	char *nomFichier; /* Chemin du fichier que l'on veut envoyer */
-	char *resultatTelechargement; /* retour client sur le téléchargement : OK ou KO */
 	char *requeteSave; /* Sauvegarde de la requete client pour le test de longueur */
 	char fichierSave[100]; /* Sauvegarde du nom du fichier car il s'efface au cours de l'execution */
 	char *commande; /* commande de l'utilisateur */
 	char caractereCourrant; /* caractère lu dans le fichier */
 	int compteur; /* compteur de caractère */
-	char entete[7]; /* en-tête du bloc */
 	char donnees[8191]; /* donnees du bloc */
-	char bloc[8199]; /* bloc envoyé au client */
-	char *retourClient; /* réponse du client après envoie d'un bloc */
+	char *retourClient; /* réponse du client après envoi d'un bloc */
 	char *tailleDejaRecue; /* Départ de la reprise */
-	int reprise = 0; /* 1 : reprise en cours / 0 : sinon */
-
-	/* On définit la taille d'un bloc à 8191 octets */
-	long tailleBloc = 8191;
 
 	/* On alloue de la memoire a la sauvegarde de la requete */
 	requeteSave = (char*) malloc(100);
-
-	/* On alloue de la memoire pour la variable */
-	resultatTelechargement = (char*) malloc(5);
 
 	/* On sauvegarde la requete */
 	strcpy(requeteSave,requete);
@@ -605,31 +606,25 @@ int envoyerFichierBloc(Client *client, char *requete){
 					do{
 						/* On récupère le premier caractère */
 						caractereCourrant = fgetc(fichier);
-						/* Si on a atteint la fin du fichier, on prépare le bloc et on envoi */
+						/* Si on a atteint la fin du fichier, on prépare le bloc et on envoie */
 						if(caractereCourrant == EOF){
-							//printf("%s\n",donnees);
-							if(reprise == 1){
-								sprintf(entete,"016%04d",compteur);
-							}else{
-								sprintf(entete,"000%04d",compteur);
-							}
-							sprintf(bloc,"%s%s\n",entete,donnees);
-							//printf("%s",bloc);
-							Emission(bloc,client);
+							unsigned char descripteur = 0;
+							EmissionBinaire(&descripteur,1,client);
+							unsigned short taille = htons(compteur); /* ntohs cote reception */
+							EmissionBinaire(&taille,2,client);
+							EmissionBinaire(donnees,compteur,client);
 							retourClient = Reception(client);
-							reprise = 0;
 							if(strstr(retourClient,"OK") == NULL){
 								/* On regarde si le client demande la reprise */
 								if(strstr(retourClient,"REST") != NULL){
-									/* On récupère la taille déjà recue */
+									/* On récupère la taille déjà reçue */
 									tailleDejaRecue = (char*) malloc(strlen(retourClient)-6);
 									int x; /* indice de parcours */
-									for(x=5;x<strlen(x);x++){
+									for(x=5;x<strlen(retourClient);x++){
 										tailleDejaRecue[x-5] = retourClient[x];
 									}
 									/* On positionne le curseur dans le fichier à l'emplacement de la reprise */
 									fseek(fichier,atoi(tailleDejaRecue),SEEK_SET);
-									reprise = 1;
 								}else{
 									printf("Erreur client\n");
 									return 0;
@@ -637,50 +632,45 @@ int envoyerFichierBloc(Client *client, char *requete){
 								
 							}
 						}else{
-							/* On ajoute le caractère à la partie données du bloc */
+							/* On ajoute le caractère à la partie des données du bloc */
 							donnees[compteur] = caractereCourrant;
 							/* On incrémente le compteur */
 							compteur++;
 							/* Si le compteur atteint la taille du bloc, on prépare le bloc et on envoie le bloc */
 							if(compteur == 8191){
-								if(reprise == 1){
-									sprintf(entete,"0168191");
-								}else{
-									sprintf(entete,"0008191");
-								}
-								sprintf(bloc,"%s%s\n",entete,donnees);
-								Emission(bloc,client);
+								unsigned char descripteur = 0;
+								EmissionBinaire(&descripteur,1,client);
+								unsigned short taille = htons(8191); /* ntohs cote reception */
+								EmissionBinaire(&taille,2,client);
+								EmissionBinaire(donnees,8191,client);
 								retourClient = Reception(client);
-								reprise = 0;
 								if(strstr(retourClient,"OK") == NULL){
 									/* On regarde si le client demande la reprise */
 									if(strstr(retourClient,"REST") != NULL){
-										/* On récupère la taille déjà recue */
+										/* On récupère la taille déjà reçue */
 										tailleDejaRecue = (char*) malloc(strlen(retourClient)-6);
 										int x; /* indice de parcours */
-										for(x=5;x<strlen(x);x++){
+										for(x=5;x<strlen(retourClient);x++){
 											tailleDejaRecue[x-5] = retourClient[x];
 										}
 										/* On positionne le curseur dans le fichier à l'emplacement de la reprise */
 										fseek(fichier,atoi(tailleDejaRecue),SEEK_SET);
-										reprise = 1;
 									}else{
 										printf("Erreur client\n");
 										return 0;
 									}
 									
 								}
-								/* On remet les variables à 0 */
+								/* On remet le compteur à 0 */
 								compteur = 0;
-								memset(donnees,0,sizeof(donnees));
-								memset(bloc,0,sizeof(bloc));
-								memset(entete,0,sizeof(entete));
 							}
 						}
 					}while(caractereCourrant != EOF);
-					/* On envoi le bloc de fin de transfert au client */
-					Emission("0640000\n",client);
-					/* On teste le retour client et on envoi le message correspondant */
+					unsigned char descripteur = 64;
+					EmissionBinaire(&descripteur,1,client);
+					unsigned short taille = 0; /* ntohs cote reception */
+					EmissionBinaire(&taille,2,client);
+					/* On teste le retour client et on envoie le message correspondant */
 					if(strstr(Reception(client),"OK") != NULL){
 						/* le retour client contient bien OK */
 						printf("Telechargement OK\n");
@@ -700,7 +690,7 @@ int envoyerFichierBloc(Client *client, char *requete){
 /* Change le mode de transfert des fichier, retourne NULL si KO ou le codeMode si OK */
 char changerMode(char *requete, Client *client){
 	char mode; /* code pour le mode demandé */
-	/* On récupère dans la requete le caractère correspondant au mode, si la requete est bien formée s'est le 6ème caractère, S = flux et B = bloc */
+	/* On récupère dans la requete le caractère correspondant au mode, si la requete est bien formée c'est le 6ème caractère, S = flux et B = bloc */
 	mode = requete[5];
 	/* On teste que le mode demandé est bien correct */
 	if(mode == 'B' || mode == 'S'){
@@ -715,16 +705,16 @@ char changerMode(char *requete, Client *client){
 			}else{
 				/* Erreur commande incorrecte */
 				Emission("500 - Commande inconnue\n",client);
-				return NULL;
+				return 0;
 			}
 		}else{
 			/* Longueur de requete incorrecte */
 			Emission("500 - Erreur de syntaxe dans la requete, longueur incorrecte\n",client);
-			return NULL;
+			return 0;
 		}
 	}else{
 		/* Mode incorrect */
 		Emission("501 - Le mode demande est incorrect\n",client);
-		return NULL;
+		return 0;
 	}
 }

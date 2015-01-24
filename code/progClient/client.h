@@ -60,4 +60,6 @@ void changerMode(char mode);
 /* Permet de reprendre un téléchargement en cours en cas d'erreur */
 int repriseTelechargement(char *nomFichier);
 
+void* telechargerFichierBlocThread(void* donnees);
+
 #endif

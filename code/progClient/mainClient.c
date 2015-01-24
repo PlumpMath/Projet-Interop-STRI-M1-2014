@@ -2,10 +2,17 @@
 #include <stdlib.h>
 #include <string.h>
 #include "client.h"
+#include <pthread.h>
 
 
 #define TRUE 1
 #define FALSE 0
+
+/* Strucutre de donnees pour les thread de telechargement */
+struct donneesThread{
+	char *numPort;
+	char *nomFichier;
+};
 
 int main(int argc, char *argv[]) {
 	char requete[100]; /* requete que l'on va envoyer au serveur */
@@ -72,7 +79,19 @@ int main(int argc, char *argv[]) {
 						if(nomFichier != NULL){
 							/* En fonction du mode on apelle la fonction qui correspond */
 							if(choixModeTransfert == 0){
-								telechargerFichierBloc(nomFichier);
+								/* On regarde si le client est lancé avec plusieurs serveurs <=> nb arguments > 2 */
+								if(argc > 3){
+									/* on va pouvoir faire du téléchargement parallèle */
+									pthread_t tabThread[argc-2]; /* Tableau de thread de longueur = au nombre de serveurs */ 
+									int i; /* indice de parcours du tableau */
+									for(i=0;i<argc-2;i++){
+										struct donneesThread donnees = {argv[i+2],nomFichier};
+										//pthread_create (&monThreadCompteur, NULL, threadCompteur, (void*)NULL);
+									}									
+								}else{
+									/* On télécharge normal depuis un seul serveur */
+									telechargerFichierBloc(nomFichier);
+								}
 							}else{
 								/* On lance la procedure d'envoi */
 								telechargerFichier(nomFichier);

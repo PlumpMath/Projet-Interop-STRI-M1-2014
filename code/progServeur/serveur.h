@@ -37,6 +37,10 @@ char *Reception(Client *client);
  */
 int Emission(char *message, Client *client);
 
+/* Envoie des donnes au client en prcisant leur taille.
+ */
+int EmissionBinaire(char *donnees, size_t taille, Client *client);
+
 /* Ferme la connexion avec le client.
  */
 void TerminaisonClient(Client *client);
