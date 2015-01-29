@@ -532,6 +532,11 @@ void *telechargerFichierBlocThread(void* param){
 	/* connexion au serveurs sauf pour le premier serveur  */
 	if(donnees->numeroServeur != 1){	
 		InitialisationAvecService("localhost",donnees->numPort);
+		reponseServeur = Reception();
+		printf("%s",reponseServeur);
+		Emission("USER temp\n");
+		reponseServeur = Reception();
+		printf("%s",reponseServeur);
 	}
 	/* demande taille */
 	sprintf(requete,"SIZE %s\n",donnees->nomFichier);
@@ -539,7 +544,7 @@ void *telechargerFichierBlocThread(void* param){
 	/* On récupère la réponse serveur */
 	reponseServeur = Reception();
 	/* On affiche la réception */
-	printf("Message serveur %d : %s",donnees->numeroServeur,reponseServeur);
+	printf("Message serveur %d : %s\n",donnees->numeroServeur,reponseServeur);
 	/* On regarde si la réponse du serveur est bien de type 213 */
 	if(strstr(reponseServeur,"213") != NULL){
 		/* On récupère la taille du fichier */
