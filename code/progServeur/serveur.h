@@ -77,4 +77,10 @@ int envoyerFichierBloc(Client *client, char *requete);
 /* Change le mode de transfert des fichier, retourne NULL si KO ou le codeMode si OK */
 char changerMode(char *requete, Client *client);
 
+/* Renvoi au client la taille du fichier qu'il donne en paramètre */
+long tailleFichier(char *requete, Client *client);
+
+/* Envoi une partie d'un fichier au client */
+int envoyerPartieFichier(Client *client, char *requete);
+
 #endif

@@ -1,6 +1,15 @@
 #ifndef __CLIENT_H__
 #define __CLIENT_H__
 
+/* Strucutre de donnees pour les thread de telechargement */
+typedef struct{
+	/* data */
+	char numPort[10];
+	char nomFichier[100];
+	int numeroServeur;
+	int nombreServeurs;
+}donneesThread;
+
 /* Initialisation.
  * Connexion au serveur sur la machine donnee et au service donne.
  * Utiliser localhost pour un fonctionnement local.
@@ -60,6 +69,6 @@ void changerMode(char mode);
 /* Permet de reprendre un téléchargement en cours en cas d'erreur */
 int repriseTelechargement(char *nomFichier);
 
-void* telechargerFichierBlocThread(void* donnees);
+void *telechargerFichierBlocThread(void* param);
 
 #endif

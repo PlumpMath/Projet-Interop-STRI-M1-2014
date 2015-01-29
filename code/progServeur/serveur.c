@@ -611,7 +611,7 @@ int envoyerFichierBloc(Client *client, char *requete){
 							unsigned char descripteur = 0;
 							EmissionBinaire(&descripteur,1,client);
 							unsigned short taille = htons(compteur); /* ntohs cote reception */
-							EmissionBinaire(&taille,2,client);
+							EmissionBinaire((char*)&taille,2,client);
 							EmissionBinaire(donnees,compteur,client);
 							retourClient = Reception(client);
 							if(strstr(retourClient,"OK") == NULL){
@@ -641,7 +641,7 @@ int envoyerFichierBloc(Client *client, char *requete){
 								unsigned char descripteur = 0;
 								EmissionBinaire(&descripteur,1,client);
 								unsigned short taille = htons(8191); /* ntohs cote reception */
-								EmissionBinaire(&taille,2,client);
+								EmissionBinaire((char*)&taille,2,client);
 								EmissionBinaire(donnees,8191,client);
 								retourClient = Reception(client);
 								if(strstr(retourClient,"OK") == NULL){
@@ -669,7 +669,7 @@ int envoyerFichierBloc(Client *client, char *requete){
 					unsigned char descripteur = 64;
 					EmissionBinaire(&descripteur,1,client);
 					unsigned short taille = 0; /* ntohs cote reception */
-					EmissionBinaire(&taille,2,client);
+					EmissionBinaire((char*)&taille,2,client);
 					/* On teste le retour client et on envoie le message correspondant */
 					if(strstr(Reception(client),"OK") != NULL){
 						/* le retour client contient bien OK */
@@ -716,5 +716,206 @@ char changerMode(char *requete, Client *client){
 		/* Mode incorrect */
 		Emission("501 - Le mode demande est incorrect\n",client);
 		return 0;
+	}
+}
+
+/* Renvoi au client la taille du fichier qu'il donne en paramètre */
+long tailleFichier(char *requete, Client *client){
+	FILE * fichier; /* Fichier que l'on veut envoyer */
+	char *nomFichier; /* Chemin du fichier que l'on veut envoyer */
+	char *requeteSave; /* Sauvegarde de la requete client pour le test de longueur */
+	char fichierSave[100]; /* Sauvegarde du nom du fichier car il s'efface au cours de l'execution */
+	char *commande; /* commande de l'utilisateur */
+	long taille; /* taille du fichier */
+	char reponse[100]; /* réponse pour le client */
+
+	/* On alloue de la memoire a la sauvegarde de la requete */
+	requeteSave = (char*) malloc(100);
+
+	/* On sauvegarde la requete */
+	strcpy(requeteSave,requete);
+
+	/* On decompose la requete client pour extraire le nom du fichier et la commande */
+	commande = strtok(requete, " \n");
+	nomFichier = strtok(NULL, " \n");
+
+	/* on sauvegarde le nom du fichier */
+	strcpy(fichierSave,nomFichier);
+
+	/* On verifie que la commande est bien SIZE */
+	if(strcmp(commande,"SIZE") != 0){
+		/* On envoie l'erreur au client */
+		printf("Requete incorrecte : mauvaise commande\n");
+		Emission("500 - Requete incorrecte\n",client);
+		return 0;
+	}else{
+		/* On teste que le chemin du fichier pas vide */
+		if(nomFichier == NULL || strcmp(nomFichier,"") == 0){
+			/* Erreur pas de chemin pour le fichier */
+			printf("ERREUR : Le chemin du fichier est vide\n");
+			Emission("501 - Chemin du fichier NULL ou vide\n",client);
+			return 0;
+		}else{
+			/* On teste maintenant la longueur de la requete */
+			/* On va donc comparer la requete sauvegardee a une requete que l'on monte pour le test */
+			sprintf(requete,"SIZE %s\n",nomFichier);
+			if(strlen(requeteSave) != strlen(requete)){
+				/* requete incorrecte */
+				printf("Requete incorrecte : probleme de longueur\n");
+				Emission("500 - Requete incorrecte\n",client);
+				return 0;
+			}else{
+				/* On récupère le nom du fichier de la sauvegarde */
+				strcpy(nomFichier,fichierSave);
+				/* On ouvre le fichier en mode binaire */
+				fichier = NULL; /* on met fichier à NULL pour bien pouvoir tester l'ouverture */
+				fichier = fopen(nomFichier,"rb");
+				/* On teste l'ouverture du fichier */
+				if(fichier == NULL){
+					/* Echec de l'ouverture */
+					printf("ERREUR : ouverture du fichier impossible\n");
+					Emission("550 - Impossible d'ouvrir le fichier\n",client);
+					return 0;
+				}else{
+					/* On recupere la taille du fichier */
+					fseek (fichier , 0 , SEEK_END);
+			  		taille = ftell (fichier);
+			  		rewind (fichier);
+			  		/* On envoi la taille du fihier */
+			  		sprintf(reponse,"213 %ld\n",taille);
+			  		Emission((char*)taille,client);
+				}
+			}
+		}
+	}
+}
+
+
+/* Envoi une partie d'un fichier au client */
+int envoyerPartieFichier(Client *client, char *requete){
+	FILE * fichier; /* Fichier que l'on veut envoyer */
+	char nomFichier[100]; /* Chemin du fichier que l'on veut envoyer */
+	char fichierSave[100]; /* Sauvegarde du nom du fichier car il s'efface au cours de l'execution */
+	char commande[5]; /* commande de l'utilisateur */
+	int debut; /* fin de la partie */
+	int fin; /* debut de la partie */
+	char *reponse; /* réponse pour le client */
+	char requeteSave[500]; /* sauvegarde de la requete */
+	char donnees[8191]; /* donnees du bloc */
+	char caractereCourrant; /* caractère lu dans le fichier */
+
+	strcpy(requeteSave,requete);
+
+	/* on récupère les éléments présents dans la requete */
+	if(sscanf(requete,"%s %s %d %d",commande,nomFichier,&debut,&fin) < 1){
+		/* Erreur dans lectue chaine */
+		printf("Erreur lecture chaine\n");
+		Emission("451 - ERREUR decomposition de la requete echouee\n",client);
+		return 0;
+	}else{
+		/* on sauvegarde le nom du fichier */
+		strcpy(fichierSave,nomFichier);
+		/* On verifie que la commande est bien REST */
+		if(strcmp(commande,"REST") != 0){
+			/* On envoie l'erreur au client */
+			printf("Requete incorrecte : mauvaise commande\n");
+			Emission("500 - Requete incorrecte\n",client);
+			return 0;
+		}else{
+			/* On teste que le chemin du fichier pas vide */
+			if(nomFichier == NULL || strcmp(nomFichier,"") == 0){
+				/* Erreur pas de chemin pour le fichier */
+				printf("ERREUR : Le chemin du fichier est vide\n");
+				Emission("501 - Chemin du fichier NULL ou vide\n",client);
+				return 0;
+			}else{
+				/* On teste maintenant la longueur de la requete */
+				/* On va donc comparer la requete sauvegardee a une requete que l'on monte pour le test */
+				sprintf(requete,"REST %s %d %d\n",nomFichier,debut, fin);
+				if(strlen(requeteSave) != strlen(requete)){
+					/* requete incorrecte */
+					printf("Requete incorrecte : probleme de longueur\n");
+					Emission("500 - Requete incorrecte\n",client);
+					return 0;
+				}else{
+					/* On récupère le nom du fichier de la sauvegarde */
+					strcpy(nomFichier,fichierSave);
+					/* On ouvre le fichier en mode binaire */
+					fichier = NULL; /* on met fichier à NULL pour bien pouvoir tester l'ouverture */
+					fichier = fopen(nomFichier,"rb");
+					/* On teste l'ouverture du fichier */
+					if(fichier == NULL){
+						/* Echec de l'ouverture */
+						printf("ERREUR : ouverture du fichier impossible\n");
+						Emission("550 - Impossible d'ouvrir le fichier\n",client);
+						return 0;
+					}else{
+						int nbCaractereLus; /* compteur du nombre total de caractères lus */
+						int compteur; /* compteur pour le bloc */
+						/* On informe le client que le téléchargement va commencer */
+						Emission("150 - Debut du telechargement\n",client);
+						/* On positionne le compteur de caractère à 0 */
+						compteur = 0;
+						nbCaractereLus = 0;
+						/* On se positionne au bon endroit dans le fichier */
+						fseek(fichier,debut,SEEK_SET);
+						/* On va lire le fichier caractère par caractère */
+						do{
+							/* On récupère le premier caractère */
+							caractereCourrant = fgetc(fichier);
+							/* Si on a atteint la fin du fichier, on prépare le bloc et on envoie */
+							if(nbCaractereLus == fin){
+								unsigned char descripteur = 0;
+								EmissionBinaire(&descripteur,1,client);
+								unsigned short taille = htons(compteur); /* ntohs cote reception */
+								EmissionBinaire((char*)&taille,2,client);
+								EmissionBinaire(donnees,compteur,client);
+								reponse = Reception(client);
+								if(strstr(reponse,"OK") == NULL){
+									printf("Erreur client\n");
+									return 0;	
+								}
+							}else{
+								/* On ajoute le caractère à la partie des données du bloc */
+								donnees[compteur] = caractereCourrant;
+								/* On incrémente le compteur */
+								compteur++;
+								nbCaractereLus++;
+								/* Si le compteur atteint la taille du bloc, on prépare le bloc et on envoie le bloc */
+								if(compteur == 8191){
+									unsigned char descripteur = 0;
+									EmissionBinaire(&descripteur,1,client);
+									unsigned short taille = htons(8191); /* ntohs cote reception */
+									EmissionBinaire((char*)&taille,2,client);
+									EmissionBinaire(donnees,8191,client);
+									reponse = Reception(client);
+									if(strstr(reponse,"OK") == NULL){
+										printf("Erreur client\n");
+										return 0;	
+									}
+									/* On remet le compteur à 0 */
+									compteur = 0;
+								}
+							}
+						}while(caractereCourrant != EOF);
+						unsigned char descripteur = 64;
+						EmissionBinaire(&descripteur,1,client);
+						unsigned short taille = 0; /* ntohs cote reception */
+						EmissionBinaire((char*)&taille,2,client);
+						/* On teste le retour client et on envoie le message correspondant */
+						if(strstr(Reception(client),"OK") != NULL){
+							/* le retour client contient bien OK */
+							printf("Telechargement OK\n");
+							Emission("226 - Telechargement termine\n",client);
+						}else{
+							printf("Telchargement KO\n");
+							Emission("451 - Telechargement echoue\n",client);
+						}
+						/* On quitte la fonction avec le code retour 1 */
+						return 1;
+					}
+				}
+			}
+		}
 	}
 }

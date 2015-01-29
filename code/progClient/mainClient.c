@@ -8,12 +8,6 @@
 #define TRUE 1
 #define FALSE 0
 
-/* Strucutre de donnees pour les thread de telechargement */
-struct donneesThread{
-	char *numPort;
-	char *nomFichier;
-};
-
 int main(int argc, char *argv[]) {
 	char requete[100]; /* requete que l'on va envoyer au serveur */
 	int etatConnexion; /* 1 : connecte / 0 : non connecte */
@@ -84,10 +78,19 @@ int main(int argc, char *argv[]) {
 									/* on va pouvoir faire du téléchargement parallèle */
 									pthread_t tabThread[argc-2]; /* Tableau de thread de longueur = au nombre de serveurs */ 
 									int i; /* indice de parcours du tableau */
+									/* On boucle pour créer les threads */
 									for(i=0;i<argc-2;i++){
-										struct donneesThread donnees = {argv[i+2],nomFichier};
-										//pthread_create (&monThreadCompteur, NULL, threadCompteur, (void*)NULL);
-									}									
+										donneesThread *donnees = malloc(sizeof(donneesThread));
+										strcpy(donnees->numPort,argv[i+2]);
+										strcpy(donnees->nomFichier,nomFichier);
+										donnees->numeroServeur = i+1;
+										donnees->nombreServeurs = argc-2;
+										pthread_create(&tabThread[i], NULL, telechargerFichierBlocThread,(void *) donnees);
+									}
+									/* On boucle pour mettre le programme en attente */
+									for(i=0;i<argc-2;i++){
+										pthread_join(tabThread[i], NULL);
+									}							
 								}else{
 									/* On télécharge normal depuis un seul serveur */
 									telechargerFichierBloc(nomFichier);

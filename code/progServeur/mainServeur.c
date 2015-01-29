@@ -36,21 +36,36 @@ int main(int argc, char *argv[]) {
 				}else{
 					/* On regarde par quelle lettre commence la requete (S (stor) R (retr) Q (quit)) */
 					if(requete[0] == 'S'){
-						/* Demande d'envoi de fichier */
-						printf("Demande d'envoi d'un fichier\n");
-						recevoirFichier(client,requete);
+						if(requete[1] == 'T'){
+							/* Demande d'envoi de fichier */
+							printf("Demande d'envoi d'un fichier\n");
+							recevoirFichier(client,requete);
+						}
+						if(requete[1] == 'I'){
+							/* Demande taille d'un fichier */
+							printf("Demande de la taille d'un fichier\n");
+							tailleFichier(requete,client);
+						}	
 					}else{
 						if(requete[0] == 'R'){
-							/* Demande de telechargement d'un fichier */
-							printf("Demande de telechargement de fichier\n");
-							/* on teste le mode de transfert en cour */
-							if(modeTransfert == 'B'){
-								/* Mode bloc */
-								envoyerFichierBloc(client, requete);
-							}else{
-								/* Mode flux */
-								envoyerFichier(client,requete);
+							if(requete[2] == 'T'){
+								/* Demande de telechargement d'un fichier */
+								printf("Demande de telechargement de fichier\n");
+								/* on teste le mode de transfert en cour */
+								if(modeTransfert == 'B'){
+									/* Mode bloc */
+									envoyerFichierBloc(client, requete);
+								}else{
+									/* Mode flux */
+									envoyerFichier(client,requete);
+								}
 							}
+							if(requete[2] == 'S'){
+								/* Demande de téléchargement d'une partie d'un fichier */
+								printf("Demande de téléchargement d'une partie d'un fichier\n");
+								envoyerPartieFichier(client,requete);
+							}
+
 						}else{
 							if(requete[0] == 'Q'){
 								/* Demande de fin de session */

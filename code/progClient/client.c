@@ -22,11 +22,6 @@
 #define FALSE 0
 #define LONGUEUR_TAMPON 4096
 
-/* Strucutre de donnees pour les thread de telechargement */
-struct donneesThread{
-	char *numPort;
-	char *nomFichier;
-};
 
 /* le socket client */
 int socketClient;
@@ -210,7 +205,7 @@ void envoyerFichier(char *nomFichier){
 	long taille; /* taille du fichier */
 
 	/* On supprime le \n a la fin du nomFichier */
-	nomFichier[strlen(nomFichier)-1] = NULL;
+	nomFichier[strlen(nomFichier)-1] = 0;
 
 	/* Ouverture du fichier en mode lecture */
 	fichier = fopen(nomFichier,"rb");
@@ -270,7 +265,7 @@ void telechargerFichier(char *nomFichier){
 	long taille; /* taille du fichier */
 
 	/* On supprime le \n a la fin du nomFichier */
-	nomFichier[strlen(nomFichier)-1] = NULL;
+	nomFichier[strlen(nomFichier)-1] = 0;
 
 	/* On verifie que le nom du fichier est non null ou vide */
 	if(nomFichier == NULL || strcmp(nomFichier,"") == 0){
@@ -337,7 +332,7 @@ int telechargerFichierBloc(char *nomFichier){
 	int i; /* indice de parcours */
 
 	/* On supprime le \n à la fin de nomFichier */
-	nomFichier[strlen(nomFichier)-1] = NULL;
+	nomFichier[strlen(nomFichier)-1] = 0;
 
 	/* On vérifie si le nom du fichier est NULL ou vide */
 	if(nomFichier == NULL || strcmp(nomFichier,"") == 0){
@@ -431,7 +426,7 @@ int repriseTelechargement(char *nomFichier){
 	int i; /* indice de parcours */
 
 	/* On supprime le \n a la fin du nomFichier */
-	nomFichier[strlen(nomFichier)-1] = NULL;
+	nomFichier[strlen(nomFichier)-1] = 0;
 
 	/* On verifie que le nom du fichier est non null ou vide */
 	if(nomFichier == NULL || strcmp(nomFichier,"") == 0){
@@ -494,8 +489,8 @@ int repriseTelechargement(char *nomFichier){
 							Emission("OK\n");
 						}
 						/* On libere l'espace alloué aux données */
-						memset(donneesBloc,0,sizeof(donneesBloc));
-						free(donneesBloc);
+						//memset(donneesBloc,0,sizeof(donneesBloc));
+						//free(donneesBloc);
 					}
 				}while(atoi(descripteurBloc) != 64);
 
@@ -514,6 +509,110 @@ int repriseTelechargement(char *nomFichier){
 	
 }
 
-void* telechargerFichierBlocThread(void* donnees){
+void *telechargerFichierBlocThread(void* param){
+	char requete[100]; /* requete pour le serveur */
+	char *reponseServeur; /* réponse du serveur */
+	int tailleFichier; /* taille du fichier */
+	int tailleParServeur; /* taille du fichier divisée par le nombre de serveur */
+	FILE * fichier = NULL; /* Fichier que l'on veut créer */
+	char bloc[65536]; /* Bloc de fichier reçu du serveur, taille max des données + 3 octets d'en-tête */
+	char *donneesBloc; /* Données contenues dans le bloc */
+	char descripteurBloc[3]; /* champ descripteur de l'en-tête*/
+	char tailleBloc[4]; /* champ taille de l'en-tête */
+	int i; /* indice de parcours */
+	char nomFichier[100]; /* nom du fichier */
 
+	donneesThread *donnees = (donneesThread *) param;
+
+	/* on supprime le \n à la fin du nom de fichier */
+	if(donnees->nomFichier[strlen(donnees->nomFichier)-1] == '\n'){
+		donnees->nomFichier[strlen(donnees->nomFichier)-1] = 0;
+	}
+
+	/* connexion au serveurs sauf pour le premier serveur  */
+	if(donnees->numeroServeur != 1){	
+		InitialisationAvecService("localhost",donnees->numPort);
+	}
+	/* demande taille */
+	sprintf(requete,"SIZE %s\n",donnees->nomFichier);
+	Emission(requete);
+	/* On récupère la réponse serveur */
+	reponseServeur = Reception();
+	/* On affiche la réception */
+	printf("Message serveur %d : %s",donnees->numeroServeur,reponseServeur);
+	/* On regarde si la réponse du serveur est bien de type 213 */
+	if(strstr(reponseServeur,"213") != NULL){
+		/* On récupère la taille du fichier */
+		sscanf(reponseServeur,"213 %d",&tailleFichier);
+		/* On regarde que la taille du fichier est pas égale à -1 */
+		if(tailleFichier > 0){
+			/* On divise la taille par le nombre de serveurs */
+			tailleParServeur = tailleFichier / donnees->nombreServeurs;
+			/* On prepare la requete pour le serveur du type REST debut fin */
+			/* chaque serveur doit suivant la formule suivante : [(numero-1)*tailleParServeur]+1 jusqu'à numero*tailleParServeur sauf le dernier qui lit jusqu'à tailleFichier */
+			if(donnees->numeroServeur == donnees->nombreServeurs){
+				/* dernier serveur */
+				sprintf(requete,"REST %s %d %d\n",donnees->nomFichier,((donnees->numeroServeur-1)*tailleParServeur)+1,tailleFichier);
+			}else{
+				/* on applique la formule */
+				sprintf(requete,"REST %s %d %d\n",donnees->nomFichier,((donnees->numeroServeur-1)*tailleParServeur)+1,donnees->numeroServeur*tailleParServeur);
+			}
+			/* On envoi la requete */
+			Emission(requete);
+			/* On affiche la reponse du serveur */
+			reponseServeur = Reception();
+			printf("%s",reponseServeur);
+			/* Si la reponse est 150 - * on recupere le contenu */
+			if(strstr(reponseServeur,"150") != NULL){
+				/* On ouvre le fichier dans lequel on va écrire */
+				sprintf(nomFichier,"%s-part%d",donnees->nomFichier,donnees->numeroServeur);
+				fichier = fopen(nomFichier,"wb");
+				/* On teste l'ouverture du fichier */
+				if(fichier == NULL){
+					/* probleme ouverture */
+					printf("ERREUR : ouverture du fichier echouee\n");
+					/* On informe le serveur du probleme */
+					Emission("KO\n");
+					/* On sort de la fonction en echec */
+				}else{
+					/* On va récupérer les blocs les uns après les autres jusqu'à recevoir un descripteur = 64 */
+					do{
+						/* On récupère l'entete du bloc */
+						ReceptionBinaire(bloc,3);
+						
+						/* On regarde si le descripteur est 0 */
+						if(bloc[0] == 0){
+							/* On récupère les données */
+							unsigned short taille;
+							memcpy(&taille,bloc+1,2);
+							taille = ntohs(taille);
+							ReceptionBinaire(bloc,taille);
+							/* On va ecrire les donnees dans le fichier */
+							if(fwrite(bloc,taille,1,fichier) < 1){
+								/* Erreur ecriture du fichier */
+						        printf("ERREUR : ecriture du contenu du fichier echouee\n");
+						        /* On informe le serveur que le fichier est bien cree */
+						    	Emission("KO\n");
+						    	/* On ferme le fichier */
+						    	fclose(fichier);
+							}else{
+								/* On informe le serveur qu'on a bien reçu le bloc */
+								Emission("OK\n");
+							}
+							/* On libere l'espace alloué aux données */
+							//memset(donneesBloc,0,sizeof(donneesBloc));
+							//free(donneesBloc);
+						}
+					}while(bloc[0] != 64);
+
+					/* on ferme le fichier et on informe le serveur que c'est OK */
+					fclose(fichier);
+					Emission("OK\n");
+					/* On affiche le message du serveur */
+					printf("%s\n",Reception());
+				}
+			}
+		}
+	}
+	pthread_exit(NULL);
 }
