@@ -720,7 +720,7 @@ char changerMode(char *requete, Client *client){
 }
 
 /* Renvoi au client la taille du fichier qu'il donne en paramètre */
-long tailleFichier(char *requete, Client *client){
+int tailleFichier(char *requete, Client *client){
 	FILE * fichier; /* Fichier que l'on veut envoyer */
 	char *nomFichier; /* Chemin du fichier que l'on veut envoyer */
 	char *requeteSave; /* Sauvegarde de la requete client pour le test de longueur */
@@ -729,8 +729,10 @@ long tailleFichier(char *requete, Client *client){
 	long taille; /* taille du fichier */
 	char reponse[100]; /* réponse pour le client */
 
+
 	/* On alloue de la memoire a la sauvegarde de la requete */
 	requeteSave = (char*) malloc(100);
+
 
 	/* On sauvegarde la requete */
 	strcpy(requeteSave,requete);
@@ -756,6 +758,7 @@ long tailleFichier(char *requete, Client *client){
 			Emission("501 - Chemin du fichier NULL ou vide\n",client);
 			return 0;
 		}else{
+
 			/* On teste maintenant la longueur de la requete */
 			/* On va donc comparer la requete sauvegardee a une requete que l'on monte pour le test */
 			sprintf(requete,"SIZE %s\n",nomFichier);
@@ -765,6 +768,7 @@ long tailleFichier(char *requete, Client *client){
 				Emission("500 - Requete incorrecte\n",client);
 				return 0;
 			}else{
+	
 				/* On récupère le nom du fichier de la sauvegarde */
 				strcpy(nomFichier,fichierSave);
 				/* On ouvre le fichier en mode binaire */
@@ -777,13 +781,16 @@ long tailleFichier(char *requete, Client *client){
 					Emission("550 - Impossible d'ouvrir le fichier\n",client);
 					return 0;
 				}else{
+		
 					/* On recupere la taille du fichier */
 					fseek (fichier , 0 , SEEK_END);
 			  		taille = ftell (fichier);
 			  		rewind (fichier);
 			  		/* On envoi la taille du fihier */
 			  		sprintf(reponse,"213 %ld\n",taille);
-			  		Emission((char*)taille,client);
+			  		Emission(reponse,client);
+			  		printf("Taille du fichier envoyee\n");
+			  		return 1;
 				}
 			}
 		}
