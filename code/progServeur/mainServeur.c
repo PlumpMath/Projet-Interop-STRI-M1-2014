@@ -20,7 +20,7 @@ int main(int argc, char *argv[]) {
 		/* On recupere le client qui s'est connecte au serveur */
 		client = AttenteClient();
 		if(connecterClient(client) == 1){
-			/* Par défaut le mode de transfert est le mode flux */
+			/* Par defaut le mode de transfert est le mode flux */
 			modeTransfert = 'S';
 			/* On va realiser le traitement du client */
 			do{
@@ -61,8 +61,8 @@ int main(int argc, char *argv[]) {
 								}
 							}
 							if(requete[2] == 'S'){
-								/* Demande de téléchargement d'une partie d'un fichier */
-								printf("Demande de téléchargement d'une partie d'un fichier\n");
+								/* Demande de telechargement d'une partie d'un fichier */
+								printf("Demande de telechargement d'une partie d'un fichier\n");
 								envoyerPartieFichier(client,requete);
 							}
 

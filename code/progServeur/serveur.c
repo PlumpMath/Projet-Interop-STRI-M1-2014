@@ -190,7 +190,7 @@ int Emission(char *message, Client *client) {
 	return 1;
 }
 
-/* Envoie des donnes au client en prcisant leur taille.
+/* Envoie des donnees au client en precisant leur taille.
  */
 int EmissionBinaire(char *donnees, size_t taille, Client *client) {
 	int retour = 0;
@@ -232,7 +232,7 @@ char * listeDir(char *repCourrant){
 
 
 	DIR* dir = NULL; /* Dossier ouvert */
-	struct dirent* fic = NULL; /* fichier selectionne */
+	struct dirent* fic = NULL; /* Fichier selectionne */
 	char * nomFic = NULL;
 	char * listeFic = NULL; /* Liste des fichiers presents dans le dossier */
 
@@ -267,19 +267,19 @@ char * listeDir(char *repCourrant){
 }
 
 /*
-Paramètres : str : chaine principale / len : longueur de la sous-chaine / pos : début de la sous-chaine  
-Extrait la sous-chaine de longueur "len" à partir du carcatère numéro "pos" dans la chaine "str" 
+Parametres : str : chaine principale / len : longueur de la sous-chaine / pos : debut de la sous-chaine  
+Extrait la sous-chaine de longueur "len" a partir du caractere numero "pos" dans la chaine "str" 
 */
 char *extraireSousChaine(char *str, long len, long pos){
 	long i; /* indice de parcours de la chaine */
-	char sousChaine[len]; /* Sous chaine que l'on va retourner */
+	char sousChaine[len]; /* Sous-chaine que l'on va retourner */
 
-	/* On se positionne sur le début de la sous chaine et on récupère les i caractères */
+	/* On se positionne sur le debut de la sous-chaine et on recupere les i caracteres */
 	for(i=pos;i<(pos+len);i++){
 		sousChaine[i-pos] = str[i];
 	}
 
-	/* On retourne la sous chaine */
+	/* On retourne la sous-chaine */
 	return strdup(sousChaine);
 }
 
@@ -473,7 +473,7 @@ int envoyerFichier(Client *client, char *requete){
 				Emission("500 - Requete incorrecte\n",client);
 				return 0;
 			}else{
-				/* On va maintenant ouvrir le fichier demandé */
+				/* On va maintenant ouvrir le fichier demande */
 				strcpy(nomFichier,fichierSave); /* on recupere la sauvegarde du nom du fichier */
 				/* Ouverture du fichier en mode lecture */
 				fichier = fopen(nomFichier,"rb");
@@ -543,12 +543,12 @@ int envoyerFichierBloc(Client *client, char *requete){
 	char *nomFichier; /* Chemin du fichier que l'on veut envoyer */
 	char *requeteSave; /* Sauvegarde de la requete client pour le test de longueur */
 	char fichierSave[100]; /* Sauvegarde du nom du fichier car il s'efface au cours de l'execution */
-	char *commande; /* commande de l'utilisateur */
-	char caractereCourrant; /* caractère lu dans le fichier */
-	int compteur; /* compteur de caractère */
-	char donnees[8191]; /* donnees du bloc */
-	char *retourClient; /* réponse du client après envoi d'un bloc */
-	char *tailleDejaRecue; /* Départ de la reprise */
+	char *commande; /* Commande de l'utilisateur */
+	char caractereCourrant; /* Caractere lu dans le fichier */
+	int compteur; /* Compteur de caractere */
+	char donnees[8191]; /* Donnees du bloc */
+	char *retourClient; /* Reponse du client apres envoi d'un bloc */
+	char *tailleDejaRecue; /* Depart de la reprise */
 
 	/* On alloue de la memoire a la sauvegarde de la requete */
 	requeteSave = (char*) malloc(100);
@@ -586,10 +586,10 @@ int envoyerFichierBloc(Client *client, char *requete){
 				Emission("500 - Requete incorrecte\n",client);
 				return 0;
 			}else{
-				/* On récupère le nom du fichier de la sauvegarde */
+				/* On recupere le nom du fichier de la sauvegarde */
 				strcpy(nomFichier,fichierSave);
 				/* On ouvre le fichier en mode binaire */
-				fichier = NULL; /* on met fichier à NULL pour bien pouvoir tester l'ouverture */
+				fichier = NULL; /* on met fichier a NULL pour bien pouvoir tester l'ouverture */
 				fichier = fopen(nomFichier,"rb");
 				/* On teste l'ouverture du fichier */
 				if(fichier == NULL){
@@ -598,15 +598,15 @@ int envoyerFichierBloc(Client *client, char *requete){
 					Emission("550 - Impossible d'ouvrir le fichier\n",client);
 					return 0;
 				}else{
-					/* On informe le client que le téléchargement va commencer */
+					/* On informe le client que le telechargement va commencer */
 					Emission("150 - Debut du telechargement\n",client);
-					/* On positionne le compteur de caractère à 0 */
+					/* On positionne le compteur de caractere a 0 */
 					compteur = 0;
-					/* On va lire le fichier caractère par caractère */
+					/* On va lire le fichier caractere par caractere */
 					do{
-						/* On récupère le premier caractère */
+						/* On recupere le premier caractere */
 						caractereCourrant = fgetc(fichier);
-						/* Si on a atteint la fin du fichier, on prépare le bloc et on envoie */
+						/* Si on a atteint la fin du fichier, on prepare le bloc et on envoie */
 						if(caractereCourrant == EOF){
 							unsigned char descripteur = 0;
 							EmissionBinaire(&descripteur,1,client);
@@ -617,13 +617,13 @@ int envoyerFichierBloc(Client *client, char *requete){
 							if(strstr(retourClient,"OK") == NULL){
 								/* On regarde si le client demande la reprise */
 								if(strstr(retourClient,"REST") != NULL){
-									/* On récupère la taille déjà reçue */
+									/* On recupere la taille deja recue */
 									tailleDejaRecue = (char*) malloc(strlen(retourClient)-6);
 									int x; /* indice de parcours */
 									for(x=5;x<strlen(retourClient);x++){
 										tailleDejaRecue[x-5] = retourClient[x];
 									}
-									/* On positionne le curseur dans le fichier à l'emplacement de la reprise */
+									/* On positionne le curseur dans le fichier a l'emplacement de la reprise */
 									fseek(fichier,atoi(tailleDejaRecue),SEEK_SET);
 								}else{
 									printf("Erreur client\n");
@@ -632,11 +632,11 @@ int envoyerFichierBloc(Client *client, char *requete){
 								
 							}
 						}else{
-							/* On ajoute le caractère à la partie des données du bloc */
+							/* On ajoute le caractere a la partie des donnees du bloc */
 							donnees[compteur] = caractereCourrant;
-							/* On incrémente le compteur */
+							/* On incremente le compteur */
 							compteur++;
-							/* Si le compteur atteint la taille du bloc, on prépare le bloc et on envoie le bloc */
+							/* Si le compteur atteint la taille du bloc, on prepare le bloc et on envoie le bloc */
 							if(compteur == 8191){
 								unsigned char descripteur = 0;
 								EmissionBinaire(&descripteur,1,client);
@@ -647,13 +647,13 @@ int envoyerFichierBloc(Client *client, char *requete){
 								if(strstr(retourClient,"OK") == NULL){
 									/* On regarde si le client demande la reprise */
 									if(strstr(retourClient,"REST") != NULL){
-										/* On récupère la taille déjà reçue */
+										/* On recupere la taille deja recue */
 										tailleDejaRecue = (char*) malloc(strlen(retourClient)-6);
 										int x; /* indice de parcours */
 										for(x=5;x<strlen(retourClient);x++){
 											tailleDejaRecue[x-5] = retourClient[x];
 										}
-										/* On positionne le curseur dans le fichier à l'emplacement de la reprise */
+										/* On positionne le curseur dans le fichier a l'emplacement de la reprise */
 										fseek(fichier,atoi(tailleDejaRecue),SEEK_SET);
 									}else{
 										printf("Erreur client\n");
@@ -661,7 +661,7 @@ int envoyerFichierBloc(Client *client, char *requete){
 									}
 									
 								}
-								/* On remet le compteur à 0 */
+								/* On remet le compteur a 0 */
 								compteur = 0;
 							}
 						}
@@ -676,7 +676,7 @@ int envoyerFichierBloc(Client *client, char *requete){
 						printf("Telechargement OK\n");
 						Emission("226 - Telechargement termine\n",client);
 					}else{
-						printf("Telchargement KO\n");
+						printf("Telechargement KO\n");
 						Emission("451 - Telechargement echoue\n",client);
 					}
 					/* On quitte la fonction avec le code retour 1 */
@@ -689,12 +689,12 @@ int envoyerFichierBloc(Client *client, char *requete){
 
 /* Change le mode de transfert des fichier, retourne NULL si KO ou le codeMode si OK */
 char changerMode(char *requete, Client *client){
-	char mode; /* code pour le mode demandé */
-	/* On récupère dans la requete le caractère correspondant au mode, si la requete est bien formée c'est le 6ème caractère, S = flux et B = bloc */
+	char mode; /* code pour le mode demande */
+	/* On recupere dans la requete le caractere correspondant au mode, si la requete est bien formee c'est le 6eme caractere, S = flux et B = bloc */
 	mode = requete[5];
-	/* On teste que le mode demandé est bien correct */
+	/* On teste que le mode demande est bien correct */
 	if(mode == 'B' || mode == 'S'){
-		/* Le mode est correct on teste maintenant la longueur de la requete, typiquement MODE CODE\n => 7 caractères */
+		/* Le mode est correct on teste maintenant la longueur de la requete, typiquement MODE CODE\n => 7 caracteres */
 		if(strlen(requete) == 7){
 			printf("%s\n",extraireSousChaine(requete, 5, 0));
 			/* Requete correcte, on teste maintenant la commande */
@@ -719,15 +719,15 @@ char changerMode(char *requete, Client *client){
 	}
 }
 
-/* Renvoi au client la taille du fichier qu'il donne en paramètre */
+/* Renvoi au client la taille du fichier qu'il donne en parametre */
 int tailleFichier(char *requete, Client *client){
 	FILE * fichier; /* Fichier que l'on veut envoyer */
 	char *nomFichier; /* Chemin du fichier que l'on veut envoyer */
 	char *requeteSave; /* Sauvegarde de la requete client pour le test de longueur */
 	char fichierSave[100]; /* Sauvegarde du nom du fichier car il s'efface au cours de l'execution */
-	char *commande; /* commande de l'utilisateur */
-	long taille; /* taille du fichier */
-	char reponse[100]; /* réponse pour le client */
+	char *commande; /* Commande de l'utilisateur */
+	long taille; /* Taille du fichier */
+	char reponse[100]; /* Reponse pour le client */
 
 
 	/* On alloue de la memoire a la sauvegarde de la requete */
@@ -769,10 +769,10 @@ int tailleFichier(char *requete, Client *client){
 				return 0;
 			}else{
 	
-				/* On récupère le nom du fichier de la sauvegarde */
+				/* On recupere le nom du fichier de la sauvegarde */
 				strcpy(nomFichier,fichierSave);
 				/* On ouvre le fichier en mode binaire */
-				fichier = NULL; /* on met fichier à NULL pour bien pouvoir tester l'ouverture */
+				fichier = NULL; /* on met fichier a NULL pour bien pouvoir tester l'ouverture */
 				fichier = fopen(nomFichier,"rb");
 				/* On teste l'ouverture du fichier */
 				if(fichier == NULL){
@@ -803,19 +803,19 @@ int envoyerPartieFichier(Client *client, char *requete){
 	FILE * fichier; /* Fichier que l'on veut envoyer */
 	char nomFichier[100]; /* Chemin du fichier que l'on veut envoyer */
 	char fichierSave[100]; /* Sauvegarde du nom du fichier car il s'efface au cours de l'execution */
-	char commande[5]; /* commande de l'utilisateur */
-	int debut; /* fin de la partie */
-	int fin; /* debut de la partie */
-	char *reponse; /* réponse pour le client */
-	char requeteSave[500]; /* sauvegarde de la requete */
-	char donnees[8191]; /* donnees du bloc */
-	char caractereCourrant; /* caractère lu dans le fichier */
+	char commande[5]; /* Commande de l'utilisateur */
+	int debut; /* Fin de la partie */
+	int fin; /* Debut de la partie */
+	char *reponse; /* Reponse pour le client */
+	char requeteSave[500]; /* Sauvegarde de la requete */
+	char donnees[8191]; /* Donnees du bloc */
+	char caractereCourrant; /* Caractere lu dans le fichier */
 
 	strcpy(requeteSave,requete);
 
-	/* on récupère les éléments présents dans la requete */
+	/* on recupere les elements presents dans la requete */
 	if(sscanf(requete,"%s %s %d %d",commande,nomFichier,&debut,&fin) < 1){
-		/* Erreur dans lectue chaine */
+		/* Erreur dans lecture chaine */
 		printf("Erreur lecture chaine\n");
 		Emission("451 - ERREUR decomposition de la requete echouee\n",client);
 		return 0;
@@ -845,10 +845,10 @@ int envoyerPartieFichier(Client *client, char *requete){
 					Emission("500 - Requete incorrecte\n",client);
 					return 0;
 				}else{
-					/* On récupère le nom du fichier de la sauvegarde */
+					/* On recupere le nom du fichier de la sauvegarde */
 					strcpy(nomFichier,fichierSave);
 					/* On ouvre le fichier en mode binaire */
-					fichier = NULL; /* on met fichier à NULL pour bien pouvoir tester l'ouverture */
+					fichier = NULL; /* on met fichier a NULL pour bien pouvoir tester l'ouverture */
 					fichier = fopen(nomFichier,"rb");
 					/* On teste l'ouverture du fichier */
 					if(fichier == NULL){
@@ -857,20 +857,20 @@ int envoyerPartieFichier(Client *client, char *requete){
 						Emission("550 - Impossible d'ouvrir le fichier\n",client);
 						return 0;
 					}else{
-						int nbCaractereLus; /* compteur du nombre total de caractères lus */
+						int nbCaractereLus; /* compteur du nombre total de caracteres lus */
 						int compteur; /* compteur pour le bloc */
-						/* On informe le client que le téléchargement va commencer */
+						/* On informe le client que le telechargement va commencer */
 						Emission("150 - Debut du telechargement\n",client);
-						/* On positionne le compteur de caractère à 0 */
+						/* On positionne le compteur de caractere a 0 */
 						compteur = 0;
 						nbCaractereLus = 0;
 						/* On se positionne au bon endroit dans le fichier */
 						fseek(fichier,debut,SEEK_SET);
-						/* On va lire le fichier caractère par caractère */
+						/* On va lire le fichier caractere par caractere */
 						do{
-							/* On récupère le premier caractère */
+							/* On recupere le premier caractere */
 							caractereCourrant = fgetc(fichier);
-							/* Si on a atteint la fin du fichier, on prépare le bloc et on envoie */
+							/* Si on a atteint la fin du fichier, on prepare le bloc et on envoie */
 							if(nbCaractereLus == fin){
 								unsigned char descripteur = 0;
 								EmissionBinaire(&descripteur,1,client);
@@ -883,12 +883,12 @@ int envoyerPartieFichier(Client *client, char *requete){
 									return 0;	
 								}
 							}else{
-								/* On ajoute le caractère à la partie des données du bloc */
+								/* On ajoute le caractere a la partie des donnees du bloc */
 								donnees[compteur] = caractereCourrant;
-								/* On incrémente le compteur */
+								/* On incremente le compteur */
 								compteur++;
 								nbCaractereLus++;
-								/* Si le compteur atteint la taille du bloc, on prépare le bloc et on envoie le bloc */
+								/* Si le compteur atteint la taille du bloc, on prepare le bloc et on envoie le bloc */
 								if(compteur == 8191){
 									unsigned char descripteur = 0;
 									EmissionBinaire(&descripteur,1,client);
@@ -900,7 +900,7 @@ int envoyerPartieFichier(Client *client, char *requete){
 										printf("Erreur client\n");
 										return 0;	
 									}
-									/* On remet le compteur à 0 */
+									/* On remet le compteur a 0 */
 									compteur = 0;
 								}
 							}
@@ -911,11 +911,11 @@ int envoyerPartieFichier(Client *client, char *requete){
 						EmissionBinaire((char*)&taille,2,client);
 						/* On teste le retour client et on envoie le message correspondant */
 						if(strstr(Reception(client),"OK") != NULL){
-							/* le retour client contient bien OK */
+							/* Le retour client contient bien OK */
 							printf("Telechargement OK\n");
 							Emission("226 - Telechargement termine\n",client);
 						}else{
-							printf("Telchargement KO\n");
+							printf("Telechargement KO\n");
 							Emission("451 - Telechargement echoue\n",client);
 						}
 						/* On quitte la fonction avec le code retour 1 */

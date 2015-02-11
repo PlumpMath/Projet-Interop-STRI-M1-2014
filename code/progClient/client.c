@@ -156,11 +156,11 @@ retourne 1 si la connexion est OK et 0 sinon
 int connecterUtilisateur(){
 
 	char *message = NULL; /* Variable qui va contenir les messages du serveur */
-	char utilisateur[50]; /* Nom d'utilisateur avec lequel on veut se connecte */
+	char utilisateur[50]; /* Nom d'utilisateur avec lequel on veut se connecter */
 	int erreur = 0; /* variable qui permet de tester la presence d'une erreur */
 	char * requete; /* Requete que l'on va envoyer au serveur */
 
-	/* On alloue de la mémoire pour la variable requete */
+	/* On alloue de la memoire pour la variable requete */
 	requete = (char*) malloc(60);
 
 	/* On recupere le message du serveur */
@@ -219,7 +219,7 @@ void envoyerFichier(char *nomFichier){
   		taille = ftell (fichier);
   		rewind (fichier);
 
-  		/* On alloue de la mémoire pour le contenu du fichier */
+  		/* On alloue de la memoire pour le contenu du fichier */
   		contenuFichier = malloc(taille);
 
 		/* on va maintenant lire le contenu du fichier */
@@ -310,7 +310,7 @@ void telechargerFichier(char *nomFichier){
 				    	fclose(fichier);
 				    	/* On informe le serveur que le fichier est bien cree */
 				    	Emission("OK\n");
-				    	/* On recupere la reponse du serveur et on l'affiche*/
+				    	/* On recupere la reponse du serveur et on l'affiche */
 				    	reponseServeur = Reception();
 				    	printf("%s",reponseServeur);
 				    }
@@ -322,25 +322,25 @@ void telechargerFichier(char *nomFichier){
 
 /* Telecharge un fichier depuis le serveur */
 int telechargerFichierBloc(char *nomFichier){
-	FILE * fichier = NULL; /* Fichier que l'on veut créer */
-	char *reponseServeur; /* Réponse du serveur */
-	char requete[100]; /* requête qu'on envoie au serveur */
-	char bloc[65536]; /* Bloc de fichier reçu du serveur, taille max des données + 3 octets d'en-tête */
-	char *donneesBloc; /* Données contenues dans le bloc */
-	char descripteurBloc[3]; /* champ descripteur de l'en-tête*/
-	char tailleBloc[4]; /* champ taille de l'en-tête */
+	FILE * fichier = NULL; /* Fichier que l'on veut creer */
+	char *reponseServeur; /* Reponse du serveur */
+	char requete[100]; /* requete qu'on envoie au serveur */
+	char bloc[65536]; /* Bloc de fichier reçu du serveur, taille max des donnees + 3 octets d'en-tete */
+	char *donneesBloc; /* Donnees contenues dans le bloc */
+	char descripteurBloc[3]; /* champ descripteur de l'en-tete*/
+	char tailleBloc[4]; /* champ taille de l'en-tete */
 	int i; /* indice de parcours */
 
-	/* On supprime le \n à la fin de nomFichier */
+	/* On supprime le \n a la fin de nomFichier */
 	nomFichier[strlen(nomFichier)-1] = 0;
 
-	/* On vérifie si le nom du fichier est NULL ou vide */
+	/* On verifie si le nom du fichier est NULL ou vide */
 	if(nomFichier == NULL || strcmp(nomFichier,"") == 0){
 		/* Fichier null ou vide */
 		printf("ERREUR : le nom du fichier est vide\n");
 		return 0;
 	}else{
-		/* On prépare la requête pour le serveur */
+		/* On prepare la requete pour le serveur */
 		sprintf(requete,"RETR %s\n",nomFichier);
 		/* On envoie la requete */
 		Emission(requete);
@@ -360,14 +360,14 @@ int telechargerFichierBloc(char *nomFichier){
 				/* On sort de la fonction en echec */
 				return 0;
 			}else{
-				/* On va récupérer les blocs les uns après les autres jusqu'à recevoir un descripteur = 64 */
+				/* On va recuperer les blocs les uns apres les autres jusqu'a recevoir un descripteur = 64 */
 				do{
-					/* On récupère l'entete du bloc */
+					/* On recupere l'en-tete du bloc */
 					ReceptionBinaire(bloc,3);
 					
 					/* On regarde si le descripteur est 0 */
 					if(bloc[0] == 0){
-						/* On récupère les données */
+						/* On recupere les donnees */
 						unsigned short taille;
 						memcpy(&taille,bloc+1,2);
 						taille = ntohs(taille);
@@ -385,7 +385,7 @@ int telechargerFichierBloc(char *nomFichier){
 							/* On informe le serveur qu'on a bien reçu le bloc */
 							Emission("OK\n");
 						}
-						/* On libere l'espace alloué aux données */
+						/* On libere l'espace alloue aux donnees */
 						//memset(donneesBloc,0,sizeof(donneesBloc));
 						//free(donneesBloc);
 					}
@@ -405,24 +405,24 @@ int telechargerFichierBloc(char *nomFichier){
 /* Envoi au serveur une demande de changement du mode de telechargement des fichiers */
 void changerMode(char mode){
 	char requete[7]; /* Requete que l'on va envoyer au serveur */
-	/* On prépare la requete */
+	/* On prepare la requete */
 	sprintf(requete,"MODE %c\n",mode);
 	/* On envoie la requete au serveur */
 	Emission(requete);
-	/* On affiche la réponse du serveur */
+	/* On affiche la reponse du serveur */
 	puts(Reception());
 }
 
-/* Permet de reprendre un téléchargement en cours en cas d'erreur */
+/* Permet de reprendre un telechargement en cours en cas d'erreur */
 int repriseTelechargement(char *nomFichier){
 	FILE *fichier = NULL; /* fichier que l'on veut reprendre */
 	long taille; /* taille actuelle du fichier */
 	char *reponseServeur; /* Reponse du serveur */
 	char requete[100]; /* requete qu'on envoie au serveur */
-	char *bloc; /* Bloc de fichier reçu du serveur, taille max des données + 3 octets d'en-tête */
+	char *bloc; /* Bloc de fichier reçu du serveur, taille max des donnees + 3 octets d'en-tete */
 	char *donneesBloc; /* Donnees contenues dans le bloc */
-	char descripteurBloc[3]; /* champ descripteur de l'en-tête*/
-	char tailleBloc[4]; /* champ taille de l'en-tête */
+	char descripteurBloc[3]; /* champ descripteur de l'en-tete*/
+	char tailleBloc[4]; /* champ taille de l'en-tete */
 	int i; /* indice de parcours */
 
 	/* On supprime le \n a la fin du nomFichier */
@@ -449,20 +449,20 @@ int repriseTelechargement(char *nomFichier){
 			taille = ftell (fichier);
 			rewind (fichier);
 
-			/* On prépare la requete pour le serveur */
+			/* On prepare la requete pour le serveur */
 			sprintf(requete,"REST %ld\n",taille);
-			/* On envoie la requête au serveur */
+			/* On envoie la requete au serveur */
 			Emission(requete);
-			/* On récupère la reponse serveur et on regarde si elle contient 150 */
+			/* On recupere la reponse serveur et on regarde si elle contient 150 */
 			reponseServeur = Reception();
 			printf("%s",reponseServeur);
 			if(strstr(reponseServeur,"150") != NULL){
-				/* On va maintenant réaliser la même fonction que pour le mode bloc */
-				/* On va récupérer les blocs les uns après les autres jusqu'à recevoir un descripteur = 64 */
+				/* On va maintenant realiser la même fonction que pour le mode bloc */
+				/* On va recuperer les blocs les uns apres les autres jusqu'a recevoir un descripteur = 64 */
 				do{
 					bloc = Reception();
 					//printf("Bloc : %s",bloc);
-					/* On va dans un premier temps extraire les différents champs d'en-tête du bloc */
+					/* On va dans un premier temps extraire les differents champs d'en-tete du bloc */
 					sprintf(descripteurBloc,"%c%c%c",bloc[0],bloc[1],bloc[2]);
 					sprintf(tailleBloc,"%c%c%c%c",bloc[3],bloc[4],bloc[5],bloc[6]);
 					/* On regarde si le descripteur est 0 */
@@ -470,7 +470,7 @@ int repriseTelechargement(char *nomFichier){
 						if(atoi(descripteurBloc) == 16){
 							printf("Debut de la reprise\n");
 						}
-						/* On récupère les données */
+						/* On recupere les donnees */
 						donneesBloc = (char*) malloc(atoi(tailleBloc));
 						for(i=7;i<strlen(bloc)-1;i++){
 							donneesBloc[i-7] = bloc[i];
@@ -488,7 +488,7 @@ int repriseTelechargement(char *nomFichier){
 							/* On informe le serveur qu'on a bien reçu le bloc */
 							Emission("OK\n");
 						}
-						/* On libere l'espace alloué aux données */
+						/* On libere l'espace alloue aux donnees */
 						//memset(donneesBloc,0,sizeof(donneesBloc));
 						//free(donneesBloc);
 					}
@@ -511,25 +511,25 @@ int repriseTelechargement(char *nomFichier){
 
 void *telechargerFichierBlocThread(void* param){
 	char requete[100]; /* requete pour le serveur */
-	char *reponseServeur; /* réponse du serveur */
+	char *reponseServeur; /* reponse du serveur */
 	int tailleFichier; /* taille du fichier */
-	int tailleParServeur; /* taille du fichier divisée par le nombre de serveur */
-	FILE * fichier = NULL; /* Fichier que l'on veut créer */
-	char bloc[65536]; /* Bloc de fichier reçu du serveur, taille max des données + 3 octets d'en-tête */
-	char *donneesBloc; /* Données contenues dans le bloc */
-	char descripteurBloc[3]; /* champ descripteur de l'en-tête*/
-	char tailleBloc[4]; /* champ taille de l'en-tête */
+	int tailleParServeur; /* taille du fichier divisee par le nombre de serveur */
+	FILE * fichier = NULL; /* Fichier que l'on veut creer */
+	char bloc[65536]; /* Bloc de fichier reçu du serveur, taille max des donnees + 3 octets d'en-tete */
+	char *donneesBloc; /* Donnees contenues dans le bloc */
+	char descripteurBloc[3]; /* champ descripteur de l'en-tete*/
+	char tailleBloc[4]; /* champ taille de l'en-tete */
 	int i; /* indice de parcours */
 	char nomFichier[100]; /* nom du fichier */
 
 	donneesThread *donnees = (donneesThread *) param;
 
-	/* on supprime le \n à la fin du nom de fichier */
+	/* on supprime le \n a la fin du nom de fichier */
 	if(donnees->nomFichier[strlen(donnees->nomFichier)-1] == '\n'){
 		donnees->nomFichier[strlen(donnees->nomFichier)-1] = 0;
 	}
 
-	/* connexion au serveurs sauf pour le premier serveur  */
+	/* connexion au serveur sauf pour le premier serveur  */
 	if(donnees->numeroServeur != 1){	
 		InitialisationAvecService("localhost",donnees->numPort);
 		reponseServeur = Reception();
@@ -541,20 +541,20 @@ void *telechargerFichierBlocThread(void* param){
 	/* demande taille */
 	sprintf(requete,"SIZE %s\n",donnees->nomFichier);
 	Emission(requete);
-	/* On récupère la réponse serveur */
+	/* On recupere la reponse serveur */
 	reponseServeur = Reception();
-	/* On affiche la réception */
+	/* On affiche la reception */
 	printf("Message serveur %d : %s\n",donnees->numeroServeur,reponseServeur);
-	/* On regarde si la réponse du serveur est bien de type 213 */
+	/* On regarde si la reponse du serveur est bien de type 213 */
 	if(strstr(reponseServeur,"213") != NULL){
-		/* On récupère la taille du fichier */
+		/* On recupere la taille du fichier */
 		sscanf(reponseServeur,"213 %d",&tailleFichier);
-		/* On regarde que la taille du fichier est pas égale à -1 */
+		/* On regarde que la taille du fichier est pas egale a -1 */
 		if(tailleFichier > 0){
 			/* On divise la taille par le nombre de serveurs */
 			tailleParServeur = tailleFichier / donnees->nombreServeurs;
 			/* On prepare la requete pour le serveur du type REST debut fin */
-			/* chaque serveur doit suivant la formule suivante : [(numero-1)*tailleParServeur]+1 jusqu'à numero*tailleParServeur sauf le dernier qui lit jusqu'à tailleFichier */
+			/* chaque serveur doit suivant la formule suivante : [(numero-1)*tailleParServeur]+1 jusqu'a numero*tailleParServeur sauf le dernier qui lit jusqu'a tailleFichier */
 			if(donnees->numeroServeur == donnees->nombreServeurs){
 				/* dernier serveur */
 				sprintf(requete,"REST %s %d %d\n",donnees->nomFichier,((donnees->numeroServeur-1)*tailleParServeur)+1,tailleFichier);
@@ -562,7 +562,7 @@ void *telechargerFichierBlocThread(void* param){
 				/* on applique la formule */
 				sprintf(requete,"REST %s %d %d\n",donnees->nomFichier,((donnees->numeroServeur-1)*tailleParServeur)+1,donnees->numeroServeur*tailleParServeur);
 			}
-			/* On envoi la requete */
+			/* On envoie la requete */
 			Emission(requete);
 			/* On affiche la reponse du serveur */
 			reponseServeur = Reception();
@@ -580,14 +580,14 @@ void *telechargerFichierBlocThread(void* param){
 					Emission("KO\n");
 					/* On sort de la fonction en echec */
 				}else{
-					/* On va récupérer les blocs les uns après les autres jusqu'à recevoir un descripteur = 64 */
+					/* On va recuperer les blocs les uns apres les autres jusqu'a recevoir un descripteur = 64 */
 					do{
-						/* On récupère l'entete du bloc */
+						/* On recupere l'en-tete du bloc */
 						ReceptionBinaire(bloc,3);
 						
 						/* On regarde si le descripteur est 0 */
 						if(bloc[0] == 0){
-							/* On récupère les données */
+							/* On recupere les donnees */
 							unsigned short taille;
 							memcpy(&taille,bloc+1,2);
 							taille = ntohs(taille);
@@ -604,7 +604,7 @@ void *telechargerFichierBlocThread(void* param){
 								/* On informe le serveur qu'on a bien reçu le bloc */
 								Emission("OK\n");
 							}
-							/* On libere l'espace alloué aux données */
+							/* On libere l'espace alloue aux donnees */
 							//memset(donneesBloc,0,sizeof(donneesBloc));
 							//free(donneesBloc);
 						}

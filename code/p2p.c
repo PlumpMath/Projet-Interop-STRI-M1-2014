@@ -173,11 +173,11 @@ retourne 1 si la connexion est OK et 0 sinon
 int connecterUtilisateurModeClient(){
 
 	char *message = NULL; /* Variable qui va contenir les messages du serveur */
-	char utilisateur[50]; /* Nom d'utilisateur avec lequel on veut se connecte */
+	char utilisateur[50]; /* Nom d'utilisateur avec lequel on veut se connecter */
 	int erreur = 0; /* variable qui permet de tester la presence d'une erreur */
 	char * requete; /* Requete que l'on va envoyer au serveur */
 
-	/* On alloue de la mémoire pour la variable requete */
+	/* On alloue de la memoire pour la variable requete */
 	requete = (char*) malloc(60);
 
 	/* On recupere le message du serveur */
@@ -236,7 +236,7 @@ void envoyerFichierModeClient(char *nomFichier){
   		taille = ftell (fichier);
   		rewind (fichier);
 
-  		/* On alloue de la mémoire pour le contenu du fichier */
+  		/* On alloue de la memoire pour le contenu du fichier */
   		contenuFichier = malloc(taille);
 
 		/* on va maintenant lire le contenu du fichier */
@@ -339,25 +339,25 @@ void telechargerFichierModeClient(char *nomFichier){
 
 /* Telecharge un fichier depuis le serveur */
 int telechargerFichierBlocModeClient(char *nomFichier){
-	FILE * fichier = NULL; /* Fichier que l'on veut créer */
-	char *reponseServeur; /* Réponse du serveur */
-	char requete[100]; /* requête qu'on envoie au serveur */
-	char bloc[65536]; /* Bloc de fichier reçu du serveur, taille max des données + 3 octets d'en-tête */
-	char *donneesBloc; /* Données contenues dans le bloc */
-	char descripteurBloc[3]; /* champ descripteur de l'en-tête*/
-	char tailleBloc[4]; /* champ taille de l'en-tête */
+	FILE * fichier = NULL; /* Fichier que l'on veut creer */
+	char *reponseServeur; /* Reponse du serveur */
+	char requete[100]; /* requete qu'on envoie au serveur */
+	char bloc[65536]; /* Bloc de fichier reçu du serveur, taille max des donnees + 3 octets d'en-tete */
+	char *donneesBloc; /* Donnees contenues dans le bloc */
+	char descripteurBloc[3]; /* champ descripteur de l'en-tete*/
+	char tailleBloc[4]; /* champ taille de l'en-tete */
 	int i; /* indice de parcours */
 
-	/* On supprime le \n à la fin de nomFichier */
+	/* On supprime le \n a la fin de nomFichier */
 	nomFichier[strlen(nomFichier)-1] = 0;
 
-	/* On vérifie si le nom du fichier est NULL ou vide */
+	/* On verifie si le nom du fichier est NULL ou vide */
 	if(nomFichier == NULL || strcmp(nomFichier,"") == 0){
 		/* Fichier null ou vide */
 		printf("ERREUR : le nom du fichier est vide\n");
 		return 0;
 	}else{
-		/* On prépare la requête pour le serveur */
+		/* On prepare la requete pour le serveur */
 		sprintf(requete,"RETR %s\n",nomFichier);
 		/* On envoie la requete */
 		EmissionModeClient(requete);
@@ -366,7 +366,7 @@ int telechargerFichierBlocModeClient(char *nomFichier){
 		printf("%s",reponseServeur);
 		/* Si la reponse est 150 - * on recupere le contenu */
 		if(strstr(reponseServeur,"150") != NULL){
-			/* On ouvre le fichier dans lequel on va écrire */
+			/* On ouvre le fichier dans lequel on va ecrire */
 			fichier = fopen(nomFichier,"wb");
 			/* On teste l'ouverture du fichier */
 			if(fichier == NULL){
@@ -377,14 +377,14 @@ int telechargerFichierBlocModeClient(char *nomFichier){
 				/* On sort de la fonction en echec */
 				return 0;
 			}else{
-				/* On va récupérer les blocs les uns après les autres jusqu'à recevoir un descripteur = 64 */
+				/* On va recuperer les blocs les uns apres les autres jusqu'a recevoir un descripteur = 64 */
 				do{
-					/* On récupère l'entete du bloc */
+					/* On recupere l'en-tete du bloc */
 					ReceptionBinaireModeClient(bloc,3);
 					
 					/* On regarde si le descripteur est 0 */
 					if(bloc[0] == 0){
-						/* On récupère les données */
+						/* On recupere les donnees */
 						unsigned short taille;
 						memcpy(&taille,bloc+1,2);
 						taille = ntohs(taille);
@@ -402,7 +402,7 @@ int telechargerFichierBlocModeClient(char *nomFichier){
 							/* On informe le serveur qu'on a bien reçu le bloc */
 							EmissionModeClient("OK\n");
 						}
-						/* On libere l'espace alloué aux données */
+						/* On libere l'espace alloue aux donnees */
 						//memset(donneesBloc,0,sizeof(donneesBloc));
 						//free(donneesBloc);
 					}
@@ -422,24 +422,24 @@ int telechargerFichierBlocModeClient(char *nomFichier){
 /* Envoi au serveur une demande de changement du mode de telechargement des fichiers */
 void changerModeModeClient(char mode){
 	char requete[7]; /* Requete que l'on va envoyer au serveur */
-	/* On prépare la requete */
+	/* On prepare la requete */
 	sprintf(requete,"MODE %c\n",mode);
 	/* On envoie la requete au serveur */
 	EmissionModeClient(requete);
-	/* On affiche la réponse du serveur */
+	/* On affiche la reponse du serveur */
 	puts(ReceptionModeClient());
 }
 
-/* Permet de reprendre un téléchargement en cours en cas d'erreur */
+/* Permet de reprendre un telechargement en cours en cas d'erreur */
 int repriseTelechargementModeClient(char *nomFichier){
 	FILE *fichier = NULL; /* fichier que l'on veut reprendre */
 	long taille; /* taille actuelle du fichier */
 	char *reponseServeur; /* Reponse du serveur */
 	char requete[100]; /* requete qu'on envoie au serveur */
-	char *bloc; /* Bloc de fichier reçu du serveur, taille max des données + 3 octets d'en-tête */
+	char *bloc; /* Bloc de fichier reçu du serveur, taille max des donnees + 3 octets d'en-tete */
 	char *donneesBloc; /* Donnees contenues dans le bloc */
-	char descripteurBloc[3]; /* champ descripteur de l'en-tête*/
-	char tailleBloc[4]; /* champ taille de l'en-tête */
+	char descripteurBloc[3]; /* champ descripteur de l'en-tete */
+	char tailleBloc[4]; /* champ taille de l'en-tete */
 	int i; /* indice de parcours */
 
 	/* On supprime le \n a la fin du nomFichier */
@@ -466,20 +466,20 @@ int repriseTelechargementModeClient(char *nomFichier){
 			taille = ftell (fichier);
 			rewind (fichier);
 
-			/* On prépare la requete pour le serveur */
+			/* On prepare la requete pour le serveur */
 			sprintf(requete,"REST %ld\n",taille);
-			/* On envoie la requête au serveur */
+			/* On envoie la requete au serveur */
 			EmissionModeClient(requete);
-			/* On récupère la reponse serveur et on regarde si elle contient 150 */
+			/* On recupere la reponse serveur et on regarde si elle contient 150 */
 			reponseServeur = ReceptionModeClient();
 			printf("%s",reponseServeur);
 			if(strstr(reponseServeur,"150") != NULL){
-				/* On va maintenant réaliser la même fonction que pour le mode bloc */
-				/* On va récupérer les blocs les uns après les autres jusqu'à recevoir un descripteur = 64 */
+				/* On va maintenant realiser la meme fonction que pour le mode bloc */
+				/* On va recuperer les blocs les uns apres les autres jusqu'a recevoir un descripteur = 64 */
 				do{
 					bloc = ReceptionModeClient();
 					//printf("Bloc : %s",bloc);
-					/* On va dans un premier temps extraire les différents champs d'en-tête du bloc */
+					/* On va dans un premier temps extraire les differents champs d'en-tete du bloc */
 					sprintf(descripteurBloc,"%c%c%c",bloc[0],bloc[1],bloc[2]);
 					sprintf(tailleBloc,"%c%c%c%c",bloc[3],bloc[4],bloc[5],bloc[6]);
 					/* On regarde si le descripteur est 0 */
@@ -487,7 +487,7 @@ int repriseTelechargementModeClient(char *nomFichier){
 						if(atoi(descripteurBloc) == 16){
 							printf("Debut de la reprise\n");
 						}
-						/* On récupère les données */
+						/* On recupere les donnees */
 						donneesBloc = (char*) malloc(atoi(tailleBloc));
 						for(i=7;i<strlen(bloc)-1;i++){
 							donneesBloc[i-7] = bloc[i];
@@ -505,7 +505,7 @@ int repriseTelechargementModeClient(char *nomFichier){
 							/* On informe le serveur qu'on a bien reçu le bloc */
 							EmissionModeClient("OK\n");
 						}
-						/* On libere l'espace alloué aux données */
+						/* On libere l'espace alloue aux donnees */
 						//memset(donneesBloc,0,sizeof(donneesBloc));
 						//free(donneesBloc);
 					}
@@ -526,28 +526,28 @@ int repriseTelechargementModeClient(char *nomFichier){
 	
 }
 
-/* Thread pour le téléchargement parallèle de fichiers en mode bloc */
+/* Thread pour le telechargement parallele de fichiers en mode bloc */
 void *telechargerFichierBlocThreadModeClient(void* param){
 	char requete[100]; /* requete pour le serveur */
-	char *reponseServeur; /* réponse du serveur */
+	char *reponseServeur; /* reponse du serveur */
 	int tailleFichier; /* taille du fichier */
-	int tailleParServeur; /* taille du fichier divisée par le nombre de serveur */
-	FILE * fichier = NULL; /* Fichier que l'on veut créer */
-	char bloc[65536]; /* Bloc de fichier reçu du serveur, taille max des données + 3 octets d'en-tête */
-	char *donneesBloc; /* Données contenues dans le bloc */
-	char descripteurBloc[3]; /* champ descripteur de l'en-tête*/
-	char tailleBloc[4]; /* champ taille de l'en-tête */
+	int tailleParServeur; /* taille du fichier divisee par le nombre de serveur */
+	FILE * fichier = NULL; /* Fichier que l'on veut creer */
+	char bloc[65536]; /* Bloc de fichier reçu du serveur, taille max des donnees + 3 octets d'en-tete */
+	char *donneesBloc; /* Donnees contenues dans le bloc */
+	char descripteurBloc[3]; /* champ descripteur de l'en-tete*/
+	char tailleBloc[4]; /* champ taille de l'en-tete */
 	int i; /* indice de parcours */
 	char nomFichier[100]; /* nom du fichier */
 
 	donneesThread *donnees = (donneesThread *) param;
 
-	/* on supprime le \n à la fin du nom de fichier */
+	/* on supprime le \n a la fin du nom de fichier */
 	if(donnees->nomFichier[strlen(donnees->nomFichier)-1] == '\n'){
 		donnees->nomFichier[strlen(donnees->nomFichier)-1] = 0;
 	}
 
-	/* connexion au serveurs sauf pour le premier serveur  */
+	/* connexion au serveur sauf pour le premier serveur  */
 	if(donnees->numeroServeur != 1){	
 		InitialisationAvecServiceModeClient("localhost",donnees->numPort);
 		reponseServeur = ReceptionModeClient();
@@ -559,20 +559,20 @@ void *telechargerFichierBlocThreadModeClient(void* param){
 	/* demande taille */
 	sprintf(requete,"SIZE %s\n",donnees->nomFichier);
 	EmissionModeClient(requete);
-	/* On récupère la réponse serveur */
+	/* On recupere la reponse serveur */
 	reponseServeur = ReceptionModeClient();
 	/* On affiche la réception */
 	printf("Message serveur %d : %s\n",donnees->numeroServeur,reponseServeur);
-	/* On regarde si la réponse du serveur est bien de type 213 */
+	/* On regarde si la reponse du serveur est bien de type 213 */
 	if(strstr(reponseServeur,"213") != NULL){
-		/* On récupère la taille du fichier */
+		/* On recupere la taille du fichier */
 		sscanf(reponseServeur,"213 %d",&tailleFichier);
-		/* On regarde que la taille du fichier est pas égale à -1 */
+		/* On regarde que la taille du fichier est pas egale a -1 */
 		if(tailleFichier > 0){
 			/* On divise la taille par le nombre de serveurs */
 			tailleParServeur = tailleFichier / donnees->nombreServeurs;
 			/* On prepare la requete pour le serveur du type REST debut fin */
-			/* chaque serveur doit suivant la formule suivante : [(numero-1)*tailleParServeur]+1 jusqu'à numero*tailleParServeur sauf le dernier qui lit jusqu'à tailleFichier */
+			/* chaque serveur doit suivant la formule suivante : [(numero-1)*tailleParServeur]+1 jusqu'a numero*tailleParServeur sauf le dernier qui lit jusqu'a tailleFichier */
 			if(donnees->numeroServeur == donnees->nombreServeurs){
 				/* dernier serveur */
 				sprintf(requete,"REST %s %d %d\n",donnees->nomFichier,((donnees->numeroServeur-1)*tailleParServeur)+1,tailleFichier);
@@ -587,7 +587,7 @@ void *telechargerFichierBlocThreadModeClient(void* param){
 			printf("%s",reponseServeur);
 			/* Si la reponse est 150 - * on recupere le contenu */
 			if(strstr(reponseServeur,"150") != NULL){
-				/* On ouvre le fichier dans lequel on va écrire */
+				/* On ouvre le fichier dans lequel on va ecrire */
 				sprintf(nomFichier,"%s-part%d",donnees->nomFichier,donnees->numeroServeur);
 				fichier = fopen(nomFichier,"wb");
 				/* On teste l'ouverture du fichier */
@@ -598,14 +598,14 @@ void *telechargerFichierBlocThreadModeClient(void* param){
 					EmissionModeClient("KO\n");
 					/* On sort de la fonction en echec */
 				}else{
-					/* On va récupérer les blocs les uns après les autres jusqu'à recevoir un descripteur = 64 */
+					/* On va recuperer les blocs les uns apres les autres jusqu'a recevoir un descripteur = 64 */
 					do{
-						/* On récupère l'entete du bloc */
+						/* On recupere l'en-tete du bloc */
 						ReceptionBinaireModeClient(bloc,3);
 						
 						/* On regarde si le descripteur est 0 */
 						if(bloc[0] == 0){
-							/* On récupère les données */
+							/* On recupere les donnees */
 							unsigned short taille;
 							memcpy(&taille,bloc+1,2);
 							taille = ntohs(taille);
@@ -622,7 +622,7 @@ void *telechargerFichierBlocThreadModeClient(void* param){
 								/* On informe le serveur qu'on a bien reçu le bloc */
 								EmissionModeClient("OK\n");
 							}
-							/* On libere l'espace alloué aux données */
+							/* On libere l'espace alloue aux donnees */
 							//memset(donneesBloc,0,sizeof(donneesBloc));
 							//free(donneesBloc);
 						}
@@ -676,7 +676,7 @@ void *threadModeClient(void* param){
 						int choixModeTransfert; /* Mode de transfert du fichier, 0 = bloc / 1 = flux */
 
 						etatConnexion = 0;
-						choixModeTransfert = 1; /* Mode flux par défaut */
+						choixModeTransfert = 1; /* Mode flux par defaut */
 
 						/* On initialise le client */
 						if(InitialisationAvecServiceModeClient("localhost",numeroPort) == 0){
@@ -698,7 +698,7 @@ void *threadModeClient(void* param){
 								printf("2 : Telecharger un fichier stocke sur le serveur\n");
 								printf("3 : Modifier le mode de telechargement des fichiers (bloc / flux)\n");
 								printf("4 : Reprendre un telechargement en cours (suite a une erreur)\n");
-								printf("0 : Se déconnecter\n\n");
+								printf("0 : Se deconnecter\n\n");
 								printf("Votre choix : ");
 								/* On recupere le choix de l'utilisateur */
 								if(scanf("%d",&choix) < 1){
@@ -715,7 +715,7 @@ void *threadModeClient(void* param){
 											/* On va lire le nom du fichier au clavier */
 											fgets(nomFichier,100,stdin);
 											fflush(stdin); /* on vide le buffer */
-											/* On verifie que on a bien lu quelque chose */
+											/* On verifie qu'on a bien lu quelque chose */
 											if(nomFichier != NULL){
 												/* On lance la procedure d'envoi */
 												envoyerFichierModeClient(nomFichier);
@@ -729,9 +729,9 @@ void *threadModeClient(void* param){
 											fflush(stdin); /* on vide le buffer */
 											/* On verifie qu'on a bien lu quelque chose */
 											if(nomFichier != NULL){
-												/* En fonction du mode on apelle la fonction qui correspond */
+												/* En fonction du mode on appelle la fonction qui correspond */
 												if(choixModeTransfert == 0){
-														/* On télécharge normal depuis un seul serveur */
+														/* On telecharge normal depuis un seul serveur */
 														telechargerFichierBlocModeClient(nomFichier);
 												}else{
 													/* On lance la procedure d'envoi */
@@ -964,7 +964,7 @@ int EmissionModeServeur(char *message, Client *client) {
 	return 1;
 }
 
-/* Envoie des donnes au client en prcisant leur taille.
+/* Envoie des donnees au client en precisant leur taille.
  */
 int EmissionBinaireModeServeur(char *donnees, size_t taille, Client *client) {
 	int retour = 0;
@@ -991,30 +991,30 @@ void TerminaisonModeServeur() {
 	close(socketEcoute);
 }
 
-/* Met tous les caracteres d'une chaine en majuscule */
+/* Mets tous les caracteres d'une chaine en majuscule */
 char * putMajusculeModeServeur(char *ch){
     int i; /* indice de parcour de la chaine */
     for(i=0;i<strlen(ch)-1;i++){
-        /* pour chaque caracteres de ch on le remplace par la minuscule correspondante */
+        /* pour chaque caractere de ch on le remplace par la minuscule correspondante */
         ch[i] = toupper(ch[i]);
     }
     return ch;
 }
 
 /*
-Paramètres : str : chaine principale / len : longueur de la sous-chaine / pos : début de la sous-chaine  
-Extrait la sous-chaine de longueur "len" à partir du carcatère numéro "pos" dans la chaine "str" 
+Parametres : str : chaine principale / len : longueur de la sous-chaine / pos : debut de la sous-chaine  
+Extrait la sous-chaine de longueur "len" a partir du caractere numero "pos" dans la chaine "str" 
 */
 char *extraireSousChaineModeServeur(char *str, long len, long pos){
 	long i; /* indice de parcours de la chaine */
-	char sousChaine[len]; /* Sous chaine que l'on va retourner */
+	char sousChaine[len]; /* Sous-chaine que l'on va retourner */
 
-	/* On se positionne sur le début de la sous chaine et on récupère les i caractères */
+	/* On se positionne sur le debut de la sous-chaine et on recupere les i caracteres */
 	for(i=pos;i<(pos+len);i++){
 		sousChaine[i-pos] = str[i];
 	}
 
-	/* On retourne la sous chaine */
+	/* On retourne la sous-chaine */
 	return strdup(sousChaine);
 }
 
@@ -1208,7 +1208,7 @@ int envoyerFichierModeServeur(Client *client, char *requete){
 				EmissionModeServeur("500 - Requete incorrecte\n",client);
 				return 0;
 			}else{
-				/* On va maintenant ouvrir le fichier demandé */
+				/* On va maintenant ouvrir le fichier demande */
 				strcpy(nomFichier,fichierSave); /* on recupere la sauvegarde du nom du fichier */
 				/* Ouverture du fichier en mode lecture */
 				fichier = fopen(nomFichier,"rb");
@@ -1279,11 +1279,11 @@ int envoyerFichierBlocModeServeur(Client *client, char *requete){
 	char *requeteSave; /* Sauvegarde de la requete client pour le test de longueur */
 	char fichierSave[100]; /* Sauvegarde du nom du fichier car il s'efface au cours de l'execution */
 	char *commande; /* commande de l'utilisateur */
-	char caractereCourrant; /* caractère lu dans le fichier */
-	int compteur; /* compteur de caractère */
+	char caractereCourrant; /* caractere lu dans le fichier */
+	int compteur; /* compteur de caractere */
 	char donnees[8191]; /* donnees du bloc */
-	char *retourClient; /* réponse du client après envoi d'un bloc */
-	char *tailleDejaRecue; /* Départ de la reprise */
+	char *retourClient; /* reponse du client apres envoi d'un bloc */
+	char *tailleDejaRecue; /* Depart de la reprise */
 
 	/* On alloue de la memoire a la sauvegarde de la requete */
 	requeteSave = (char*) malloc(100);
@@ -1321,10 +1321,10 @@ int envoyerFichierBlocModeServeur(Client *client, char *requete){
 				EmissionModeServeur("500 - Requete incorrecte\n",client);
 				return 0;
 			}else{
-				/* On récupère le nom du fichier de la sauvegarde */
+				/* On recupere le nom du fichier de la sauvegarde */
 				strcpy(nomFichier,fichierSave);
 				/* On ouvre le fichier en mode binaire */
-				fichier = NULL; /* on met fichier à NULL pour bien pouvoir tester l'ouverture */
+				fichier = NULL; /* on met fichier a NULL pour bien pouvoir tester l'ouverture */
 				fichier = fopen(nomFichier,"rb");
 				/* On teste l'ouverture du fichier */
 				if(fichier == NULL){
@@ -1333,15 +1333,15 @@ int envoyerFichierBlocModeServeur(Client *client, char *requete){
 					EmissionModeServeur("550 - Impossible d'ouvrir le fichier\n",client);
 					return 0;
 				}else{
-					/* On informe le client que le téléchargement va commencer */
+					/* On informe le client que le telechargement va commencer */
 					EmissionModeServeur("150 - Debut du telechargement\n",client);
-					/* On positionne le compteur de caractère à 0 */
+					/* On positionne le compteur de caractere a 0 */
 					compteur = 0;
-					/* On va lire le fichier caractère par caractère */
+					/* On va lire le fichier caractere par caractere */
 					do{
-						/* On récupère le premier caractère */
+						/* On recupere le premier caractere */
 						caractereCourrant = fgetc(fichier);
-						/* Si on a atteint la fin du fichier, on prépare le bloc et on envoie */
+						/* Si on a atteint la fin du fichier, on prepare le bloc et on envoie */
 						if(caractereCourrant == EOF){
 							unsigned char descripteur = 0;
 							EmissionBinaireModeServeur(&descripteur,1,client);
@@ -1352,13 +1352,13 @@ int envoyerFichierBlocModeServeur(Client *client, char *requete){
 							if(strstr(retourClient,"OK") == NULL){
 								/* On regarde si le client demande la reprise */
 								if(strstr(retourClient,"REST") != NULL){
-									/* On récupère la taille déjà reçue */
+									/* On recupere la taille deja recue */
 									tailleDejaRecue = (char*) malloc(strlen(retourClient)-6);
 									int x; /* indice de parcours */
 									for(x=5;x<strlen(retourClient);x++){
 										tailleDejaRecue[x-5] = retourClient[x];
 									}
-									/* On positionne le curseur dans le fichier à l'emplacement de la reprise */
+									/* On positionne le curseur dans le fichier a l'emplacement de la reprise */
 									fseek(fichier,atoi(tailleDejaRecue),SEEK_SET);
 								}else{
 									//printf("Erreur client\n");
@@ -1367,11 +1367,11 @@ int envoyerFichierBlocModeServeur(Client *client, char *requete){
 								
 							}
 						}else{
-							/* On ajoute le caractère à la partie des données du bloc */
+							/* On ajoute le caractere a la partie des donnees du bloc */
 							donnees[compteur] = caractereCourrant;
-							/* On incrémente le compteur */
+							/* On incremente le compteur */
 							compteur++;
-							/* Si le compteur atteint la taille du bloc, on prépare le bloc et on envoie le bloc */
+							/* Si le compteur atteint la taille du bloc, on prepare le bloc et on envoie le bloc */
 							if(compteur == 8191){
 								unsigned char descripteur = 0;
 								EmissionBinaireModeServeur(&descripteur,1,client);
@@ -1382,13 +1382,13 @@ int envoyerFichierBlocModeServeur(Client *client, char *requete){
 								if(strstr(retourClient,"OK") == NULL){
 									/* On regarde si le client demande la reprise */
 									if(strstr(retourClient,"REST") != NULL){
-										/* On récupère la taille déjà reçue */
+										/* On recupere la taille deja recue */
 										tailleDejaRecue = (char*) malloc(strlen(retourClient)-6);
 										int x; /* indice de parcours */
 										for(x=5;x<strlen(retourClient);x++){
 											tailleDejaRecue[x-5] = retourClient[x];
 										}
-										/* On positionne le curseur dans le fichier à l'emplacement de la reprise */
+										/* On positionne le curseur dans le fichier a l'emplacement de la reprise */
 										fseek(fichier,atoi(tailleDejaRecue),SEEK_SET);
 									}else{
 										//printf("Erreur client\n");
@@ -1396,7 +1396,7 @@ int envoyerFichierBlocModeServeur(Client *client, char *requete){
 									}
 									
 								}
-								/* On remet le compteur à 0 */
+								/* On remet le compteur a 0 */
 								compteur = 0;
 							}
 						}
@@ -1411,7 +1411,7 @@ int envoyerFichierBlocModeServeur(Client *client, char *requete){
 						//printf("Telechargement OK\n");
 						EmissionModeServeur("226 - Telechargement termine\n",client);
 					}else{
-						//printf("Telchargement KO\n");
+						//printf("Telechargement KO\n");
 						EmissionModeServeur("451 - Telechargement echoue\n",client);
 					}
 					/* On quitte la fonction avec le code retour 1 */
@@ -1424,12 +1424,12 @@ int envoyerFichierBlocModeServeur(Client *client, char *requete){
 
 /* Change le mode de transfert des fichier, retourne NULL si KO ou le codeMode si OK */
 char changerModeModeServeur(char *requete, Client *client){
-	char mode; /* code pour le mode demandé */
-	/* On récupère dans la requete le caractère correspondant au mode, si la requete est bien formée c'est le 6ème caractère, S = flux et B = bloc */
+	char mode; /* code pour le mode demande */
+	/* On recupere dans la requete le caractere correspondant au mode, si la requete est bien formee c'est le 6eme caractere, S = flux et B = bloc */
 	mode = requete[5];
-	/* On teste que le mode demandé est bien correct */
+	/* On teste que le mode demande est bien correct */
 	if(mode == 'B' || mode == 'S'){
-		/* Le mode est correct on teste maintenant la longueur de la requete, typiquement MODE CODE\n => 7 caractères */
+		/* Le mode est correct on teste maintenant la longueur de la requete, typiquement MODE CODE\n => 7 caracteres */
 		if(strlen(requete) == 7){
 			//printf("%s\n",extraireSousChaineModeServeur(requete, 5, 0));
 			/* Requete correcte, on teste maintenant la commande */
@@ -1454,7 +1454,7 @@ char changerModeModeServeur(char *requete, Client *client){
 	}
 }
 
-/* Renvoi au client la taille du fichier qu'il donne en paramètre */
+/* Renvoi au client la taille du fichier qu'il donne en parametre */
 int tailleFichierModeServeur(char *requete, Client *client){
 	FILE * fichier; /* Fichier que l'on veut envoyer */
 	char *nomFichier; /* Chemin du fichier que l'on veut envoyer */
@@ -1462,7 +1462,7 @@ int tailleFichierModeServeur(char *requete, Client *client){
 	char fichierSave[100]; /* Sauvegarde du nom du fichier car il s'efface au cours de l'execution */
 	char *commande; /* commande de l'utilisateur */
 	long taille; /* taille du fichier */
-	char reponse[100]; /* réponse pour le client */
+	char reponse[100]; /* reponse pour le client */
 
 
 	/* On alloue de la memoire a la sauvegarde de la requete */
@@ -1504,10 +1504,10 @@ int tailleFichierModeServeur(char *requete, Client *client){
 				return 0;
 			}else{
 	
-				/* On récupère le nom du fichier de la sauvegarde */
+				/* On recupere le nom du fichier de la sauvegarde */
 				strcpy(nomFichier,fichierSave);
 				/* On ouvre le fichier en mode binaire */
-				fichier = NULL; /* on met fichier à NULL pour bien pouvoir tester l'ouverture */
+				fichier = NULL; /* on met fichier a NULL pour bien pouvoir tester l'ouverture */
 				fichier = fopen(nomFichier,"rb");
 				/* On teste l'ouverture du fichier */
 				if(fichier == NULL){
@@ -1541,16 +1541,16 @@ int envoyerPartieFichierModeServeur(Client *client, char *requete){
 	char commande[5]; /* commande de l'utilisateur */
 	int debut; /* fin de la partie */
 	int fin; /* debut de la partie */
-	char *reponse; /* réponse pour le client */
+	char *reponse; /* reponse pour le client */
 	char requeteSave[500]; /* sauvegarde de la requete */
 	char donnees[8191]; /* donnees du bloc */
-	char caractereCourrant; /* caractère lu dans le fichier */
+	char caractereCourrant; /* caractere lu dans le fichier */
 
 	strcpy(requeteSave,requete);
 
-	/* on récupère les éléments présents dans la requete */
+	/* on recupere les elements presents dans la requete */
 	if(sscanf(requete,"%s %s %d %d",commande,nomFichier,&debut,&fin) < 1){
-		/* Erreur dans lectue chaine */
+		/* Erreur dans lecture chaine */
 		//printf("Erreur lecture chaine\n");
 		EmissionModeServeur("451 - ERREUR decomposition de la requete echouee\n",client);
 		return 0;
@@ -1580,10 +1580,10 @@ int envoyerPartieFichierModeServeur(Client *client, char *requete){
 					EmissionModeServeur("500 - Requete incorrecte\n",client);
 					return 0;
 				}else{
-					/* On récupère le nom du fichier de la sauvegarde */
+					/* On recupere le nom du fichier de la sauvegarde */
 					strcpy(nomFichier,fichierSave);
 					/* On ouvre le fichier en mode binaire */
-					fichier = NULL; /* on met fichier à NULL pour bien pouvoir tester l'ouverture */
+					fichier = NULL; /* on met fichier a NULL pour bien pouvoir tester l'ouverture */
 					fichier = fopen(nomFichier,"rb");
 					/* On teste l'ouverture du fichier */
 					if(fichier == NULL){
@@ -1592,20 +1592,20 @@ int envoyerPartieFichierModeServeur(Client *client, char *requete){
 						EmissionModeServeur("550 - Impossible d'ouvrir le fichier\n",client);
 						return 0;
 					}else{
-						int nbCaractereLus; /* compteur du nombre total de caractères lus */
+						int nbCaractereLus; /* compteur du nombre total de caracteres lus */
 						int compteur; /* compteur pour le bloc */
-						/* On informe le client que le téléchargement va commencer */
+						/* On informe le client que le telechargement va commencer */
 						EmissionModeServeur("150 - Debut du telechargement\n",client);
-						/* On positionne le compteur de caractère à 0 */
+						/* On positionne le compteur de caractere a 0 */
 						compteur = 0;
 						nbCaractereLus = 0;
 						/* On se positionne au bon endroit dans le fichier */
 						fseek(fichier,debut,SEEK_SET);
-						/* On va lire le fichier caractère par caractère */
+						/* On va lire le fichier caractere par caractere */
 						do{
-							/* On récupère le premier caractère */
+							/* On recupere le premier caractere */
 							caractereCourrant = fgetc(fichier);
-							/* Si on a atteint la fin du fichier, on prépare le bloc et on envoie */
+							/* Si on a atteint la fin du fichier, on prepare le bloc et on envoie */
 							if(nbCaractereLus == fin){
 								unsigned char descripteur = 0;
 								EmissionBinaireModeServeur(&descripteur,1,client);
@@ -1618,12 +1618,12 @@ int envoyerPartieFichierModeServeur(Client *client, char *requete){
 									return 0;	
 								}
 							}else{
-								/* On ajoute le caractère à la partie des données du bloc */
+								/* On ajoute le caractere a la partie des donnees du bloc */
 								donnees[compteur] = caractereCourrant;
-								/* On incrémente le compteur */
+								/* On incremente le compteur */
 								compteur++;
 								nbCaractereLus++;
-								/* Si le compteur atteint la taille du bloc, on prépare le bloc et on envoie le bloc */
+								/* Si le compteur atteint la taille du bloc, on prepare le bloc et on envoie le bloc */
 								if(compteur == 8191){
 									unsigned char descripteur = 0;
 									EmissionBinaireModeServeur(&descripteur,1,client);
@@ -1635,7 +1635,7 @@ int envoyerPartieFichierModeServeur(Client *client, char *requete){
 										//printf("Erreur client\n");
 										return 0;	
 									}
-									/* On remet le compteur à 0 */
+									/* On remet le compteur a 0 */
 									compteur = 0;
 								}
 							}
@@ -1650,7 +1650,7 @@ int envoyerPartieFichierModeServeur(Client *client, char *requete){
 							//printf("Telechargement OK\n");
 							EmissionModeServeur("226 - Telechargement termine\n",client);
 						}else{
-							//printf("Telchargement KO\n");
+							//printf("Telechargement KO\n");
 							EmissionModeServeur("451 - Telechargement echoue\n",client);
 						}
 						/* On quitte la fonction avec le code retour 1 */
@@ -1679,7 +1679,7 @@ void *threadModeServeur(void* param){
 		/* On recupere le client qui s'est connecte au serveur */
 		client = AttenteClientModeServeur();
 		if(connecterClientModeServeur(client) == 1){
-			/* Par défaut le mode de transfert est le mode flux */
+			/* Par defaut le mode de transfert est le mode flux */
 			modeTransfert = 'S';
 			/* On va realiser le traitement du client */
 			do{
@@ -1710,7 +1710,7 @@ void *threadModeServeur(void* param){
 							if(requete[2] == 'T'){
 								/* Demande de telechargement d'un fichier */
 								//printf("Demande de telechargement de fichier\n");
-								/* on teste le mode de transfert en cour */
+								/* on teste le mode de transfert en cours */
 								if(modeTransfert == 'B'){
 									/* Mode bloc */
 									envoyerFichierBlocModeServeur(client, requete);
@@ -1720,8 +1720,8 @@ void *threadModeServeur(void* param){
 								}
 							}
 							if(requete[2] == 'S'){
-								/* Demande de téléchargement d'une partie d'un fichier */
-								//printf("Demande de téléchargement d'une partie d'un fichier\n");
+								/* Demande de telechargement d'une partie d'un fichier */
+								//printf("Demande de telechargement d'une partie d'un fichier\n");
 								envoyerPartieFichierModeServeur(client,requete);
 							}
 

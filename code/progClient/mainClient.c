@@ -18,7 +18,7 @@ int main(int argc, char *argv[]) {
 	int choixModeTransfert; /* Mode de transfert du fichier, 0 = bloc / 1 = flux */
 
 	etatConnexion = 0;
-	choixModeTransfert = 1; /* Mode flux par défaut */
+	choixModeTransfert = 1; /* Mode flux par defaut */
 
 	/* On initialise le client */
 	if(InitialisationAvecService(argv[1],argv[2]) == 0){
@@ -40,7 +40,7 @@ int main(int argc, char *argv[]) {
 			printf("2 : Telecharger un fichier stocke sur le serveur\n");
 			printf("3 : Modifier le mode de telechargement des fichiers (bloc / flux)\n");
 			printf("4 : Reprendre un telechargement en cours (suite a une erreur)\n");
-			printf("0 : Se déconnecter\n\n");
+			printf("0 : Se deconnecter\n\n");
 			printf("Votre choix : ");
 			/* On recupere le choix de l'utilisateur */
 			if(scanf("%d",&choix) < 1){
@@ -71,14 +71,14 @@ int main(int argc, char *argv[]) {
 						fflush(stdin); /* on vide le buffer */
 						/* On verifie qu'on a bien lu quelque chose */
 						if(nomFichier != NULL){
-							/* En fonction du mode on apelle la fonction qui correspond */
+							/* En fonction du mode on appelle la fonction qui correspond */
 							if(choixModeTransfert == 0){
-								/* On regarde si le client est lancé avec plusieurs serveurs <=> nb arguments > 2 */
+								/* On regarde si le client est lance avec plusieurs serveurs <=> nb arguments > 2 */
 								if(argc > 3){
-									/* on va pouvoir faire du téléchargement parallèle */
+									/* on va pouvoir faire du telechargement parallele */
 									pthread_t tabThread[argc-2]; /* Tableau de thread de longueur = au nombre de serveurs */ 
 									int i; /* indice de parcours du tableau */
-									/* On boucle pour créer les threads */
+									/* On boucle pour creer les threads */
 									for(i=0;i<argc-2;i++){
 										donneesThread *donnees = malloc(sizeof(donneesThread));
 										strcpy(donnees->numPort,argv[i+2]);
@@ -92,7 +92,7 @@ int main(int argc, char *argv[]) {
 										pthread_join(tabThread[i], NULL);
 									}							
 								}else{
-									/* On télécharge normal depuis un seul serveur */
+									/* On telecharge normal depuis un seul serveur */
 									telechargerFichierBloc(nomFichier);
 								}
 							}else{
