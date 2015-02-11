@@ -1,7 +1,7 @@
 #ifndef __CLIENT_H__
 #define __CLIENT_H__
 
-/* Strucutre de donnees pour les thread de telechargement */
+/* Structure de donnees pour les thread de telechargement */
 typedef struct{
 	/* data */
 	char numPort[10];
@@ -66,7 +66,7 @@ int telechargerFichierBloc(char *nomFichier);
 /* Envoi au serveur une demande de changement du mode de telechargement des fichiers */
 void changerMode(char mode);
 
-/* Permet de reprendre un téléchargement en cours en cas d'erreur */
+/* Permet de reprendre un telechargement en cours en cas d'erreur */
 int repriseTelechargement(char *nomFichier);
 
 void *telechargerFichierBlocThread(void* param);

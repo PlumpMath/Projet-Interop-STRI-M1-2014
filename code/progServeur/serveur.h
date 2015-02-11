@@ -37,7 +37,7 @@ char *Reception(Client *client);
  */
 int Emission(char *message, Client *client);
 
-/* Envoie des donnes au client en prcisant leur taille.
+/* Envoie des donnees au client en precisant leur taille.
  */
 int EmissionBinaire(char *donnees, size_t taille, Client *client);
 
@@ -56,8 +56,8 @@ char * putMajuscule(char *ch);
 char * listeDir(char *dir);
 
 /*
-Paramètres : str : chaine principale / len : longueur de la sous-chaine / pos : début de la sous-chaine  
-Extrait la sous-chaine de longueur "len" à partir du carcatère numéro "pos" dans la chaine "str" 
+Parametres : str : chaine principale / len : longueur de la sous-chaine / pos : debut de la sous-chaine  
+Extrait la sous-chaine de longueur "len" à partir du caractere numero "pos" dans la chaine "str" 
 */
 char *extraireSousChaine(char *str, long len, long pos);
 
@@ -77,7 +77,7 @@ int envoyerFichierBloc(Client *client, char *requete);
 /* Change le mode de transfert des fichier, retourne NULL si KO ou le codeMode si OK */
 char changerMode(char *requete, Client *client);
 
-/* Renvoi au client la taille du fichier qu'il donne en paramètre */
+/* Renvoi au client la taille du fichier qu'il donne en parametre */
 int tailleFichier(char *requete, Client *client);
 
 /* Envoi une partie d'un fichier au client */

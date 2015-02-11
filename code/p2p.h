@@ -12,12 +12,12 @@ typedef struct {
 	int finTampon;
 } Client;
 
-/* Strucutre de donnees pour les thread serveur */
+/* Structure de donnees pour les thread serveur */
 typedef struct{
 	char portEcoute[6];
 }donneesServeur;
 
-/* Strucutre de donnees pour les thread de telechargement */
+/* Structure de donnees pour les thread de telechargement */
 typedef struct{
 	/* data */
 	char numPort[10];
@@ -67,10 +67,10 @@ int telechargerFichierBlocModeClient(char *nomFichier);
 /* Envoi au serveur une demande de changement du mode de telechargement des fichiers */
 void changerModeModeClient(char mode);
 
-/* Permet de reprendre un téléchargement en cours en cas d'erreur */
+/* Permet de reprendre un telechargement en cours en cas d'erreur */
 int repriseTelechargementModeClient(char *nomFichier);
 
-/* Thread pour le téléchargement parallèle de fichiers en mode bloc */
+/* Thread pour le telechargement parallele de fichiers en mode bloc */
 void *telechargerFichierBlocThreadModeClient(void* param);
 
 /* Thread pour l'execution de la partie "client" du programme */
@@ -93,7 +93,7 @@ char *ReceptionModeServeur(Client *client);
  */
 int EmissionModeServeur(char *message, Client *client);
 
-/* Envoie des donnes au client en prcisant leur taille.
+/* Envoie des donnees au client en precisant leur taille.
  */
 int EmissionBinaireModeServeur(char *donnees, size_t taille, Client *client);
 
@@ -109,8 +109,8 @@ void TerminaisonModeServeur();
 char * putMajusculeModeServeur(char *ch);
 
 /*
-Paramètres : str : chaine principale / len : longueur de la sous-chaine / pos : début de la sous-chaine  
-Extrait la sous-chaine de longueur "len" à partir du carcatère numéro "pos" dans la chaine "str" 
+Parametres : str : chaine principale / len : longueur de la sous-chaine / pos : debut de la sous-chaine  
+Extrait la sous-chaine de longueur "len" à partir du caractere numero "pos" dans la chaine "str" 
 */
 char *extraireSousChaineModeServeur(char *str, long len, long pos);
 
@@ -130,7 +130,7 @@ int envoyerFichierBlocModeServeur(Client *client, char *requete);
 /* Change le mode de transfert des fichier, retourne NULL si KO ou le codeMode si OK */
 char changerModeModeServeur(char *requete, Client *client);
 
-/* Renvoi au client la taille du fichier qu'il donne en paramètre */
+/* Renvoi au client la taille du fichier qu'il donne en parametre */
 int tailleFichierModeServeur(char *requete, Client *client);
 
 /* Envoi une partie d'un fichier au client */
